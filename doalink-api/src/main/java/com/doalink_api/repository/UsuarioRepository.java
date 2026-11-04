@@ -1,4 +1,7 @@
 package com.doalink_api.repository;
 
-public interface UsuarioRepository {
+import com.doalink_api.entities.Usuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 }
