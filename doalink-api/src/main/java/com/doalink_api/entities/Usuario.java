@@ -45,11 +45,11 @@ public abstract class Usuario {
     @Column(nullable = false)
     private String senha;
 
+    @Setter(AccessLevel.PROTECTED)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoUsuario tipoUsuario;
 
-    @Setter(AccessLevel.PROTECTED)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoPessoa tipoPessoa;
