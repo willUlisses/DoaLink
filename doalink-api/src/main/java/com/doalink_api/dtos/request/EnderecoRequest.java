@@ -10,7 +10,7 @@ public record EnderecoRequest(
         String complemento,
         @NotBlank String bairro,
         @NotBlank String cidade,
-        @NotBlank @Size(min = 2, max = 2) String uf,
+        @NotBlank @Size(min = 2, max = 2) String estado,
         @NotBlank @Pattern(regexp = "\\d{5}-?\\d{3}") String cep
 ) {
 }
