@@ -1,5 +1,8 @@
 package com.doalink_api.entities.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum TipoUsuario {
 
     DOADOR("DOADOR"),

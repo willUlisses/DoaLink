@@ -1,5 +1,6 @@
 package com.doalink_api.entities;
 
+import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.entities.enums.TipoUsuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -13,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,11 +33,8 @@ public abstract class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String cpf;
-
-    @Column(unique = true)
-    private String cnpj;
+    @Column(nullable = false, unique = true)
+    private String documento;
 
     @Column(nullable = false)
     private String nome;
@@ -49,6 +48,20 @@ public abstract class Usuario {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoUsuario tipoUsuario;
+
+    @Setter(AccessLevel.PROTECTED)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoPessoa tipoPessoa;
+
+    public Usuario(String documento, String nome, String email, String senha, TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
+        this.documento = documento;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.tipoUsuario = tipoUsuario;
+        this.tipoPessoa = tipoPessoa;
+    }
 
 
 

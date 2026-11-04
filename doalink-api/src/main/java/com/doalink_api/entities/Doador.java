@@ -1,7 +1,15 @@
 package com.doalink_api.entities;
 
-public class Doador {
+import com.doalink_api.entities.enums.TipoUsuario;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-    // TODO: fazer a herança e colocar os detalhes necessários
+@Entity
+@Table(name = "doadores")
+public class Doador extends Usuario {
+
+    public Doador() {
+        setTipoUsuario(TipoUsuario.DOADOR);
+    }
 
 }
