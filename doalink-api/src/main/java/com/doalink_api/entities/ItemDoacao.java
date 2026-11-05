@@ -40,4 +40,44 @@ public class ItemDoacao {
         this.doador = doador;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Double getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(Double quantidade) {
+        this.quantidade = quantidade;
+    }
+
+    public TipoItemDoacao getTipoItemDoacao() {
+        return tipoItemDoacao;
+    }
+
+    public void setTipoItemDoacao(TipoItemDoacao tipoItemDoacao) {
+        this.tipoItemDoacao = tipoItemDoacao;
+    }
+
+    public Endereco getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
+    }
+
+    public Doador getDoador() {
+        return doador;
+    }
+
+    public void setDoador(Doador doador) {
+        this.doador = doador;
+    }
+
 }
