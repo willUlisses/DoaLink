@@ -1,67 +1,74 @@
 package com.doalink_api.service;
 
 import com.doalink_api.dtos.request.CadastroComumRequest;
+import com.doalink_api.dtos.request.CadastroReceptorRequest;
+import com.doalink_api.dtos.response.UsuarioResponse;
 import com.doalink_api.entities.Doador;
+import com.doalink_api.entities.Receptor;
 import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.Usuario;
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.exception.ConflictException;
+import com.doalink_api.mapper.EnderecoMapper;
 import com.doalink_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
+
+@Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
-
-    private record DadosComunsTratados(TipoPessoa tipoPessoa, String documento, String email) { }
-
+    private final PasswordEncoder  passwordEncoder;
 
     @Transactional
-    public Doador cadastrarDoador(CadastroComumRequest req) {
-        DadosComunsTratados dadosTratados = prepararDadosComuns(req);
-        Doador doador = new Doador();
-        preencherComuns(doador, req.nome(), req.senha(), dadosTratados);
-        return usuarioRepository.save(doador);
+    public UsuarioResponse cadastrarDoador(CadastroComumRequest req) {
+        return processarCadastroDoadorOuTransportador(new Doador(), req);
     }
 
     @Transactional
-    public Transportador cadastrarTransportador(CadastroComumRequest req) {
-        DadosComunsTratados dados = prepararDadosComuns(req);
-        Transportador transportador = new Transportador();
-        preencherComuns(transportador, req.nome(), req.senha(), dados);
-        return usuarioRepository.save(transportador);
+    public UsuarioResponse cadastrarTransportador(CadastroComumRequest req) {
+        return processarCadastroDoadorOuTransportador(new Transportador(), req);
     }
 
-    // TODO: criar método pra cadastrar o Receptor
-
-
-    private DadosComunsTratados prepararDadosComuns(CadastroComumRequest req) {
-        boolean temCpf = req.cpf() != null && !req.cpf().isBlank();
-
-        TipoPessoa tipoPessoa = temCpf ? TipoPessoa.FISICA : TipoPessoa.JURIDICA;
-        String documento = normalizarDocumento(temCpf ? req.cpf() : req.cnpj());
+    @Transactional
+    public UsuarioResponse cadastrarReceptor(CadastroReceptorRequest req) {
+        String documento = normalizarDocumento(req.cnpj());
         String email = req.email().trim().toLowerCase();
 
         validarUnicidade(email, documento);
+        // TODO: Configurar cliente pra chamar api de validar cnpj
 
-        // TODO: configurar cliente e consulta em api externa do cnpj
+        Receptor receptor = new Receptor();
+        receptor.setEndereco(EnderecoMapper.toEndereco(req.endereco()));
+        preencherComuns(receptor, req.nome(), req.senha(), TipoPessoa.JURIDICA, documento, email);
 
-        return new DadosComunsTratados(tipoPessoa, documento, email);
+        return UsuarioResponse.from(usuarioRepository.save(receptor));
     }
 
 
-    private void preencherComuns(Usuario u, String nome, String senha, DadosComunsTratados d) {
-        u.setTipoPessoa(d.tipoPessoa());
-        u.setDocumento(d.documento());
+
+
+    private UsuarioResponse processarCadastroDoadorOuTransportador(Usuario usuario, CadastroComumRequest req) {
+        String documento = normalizarDocumento(req.getDocumentoPreenchido());
+        String email = req.email().trim().toLowerCase();
+        // TODO: se req for pessoa jurídica, chamar api do cnpj
+
+        validarUnicidade(email, documento);
+        preencherComuns(usuario, req.nome(), req.senha(), req.getTipoPessoa(), documento, email);
+        return UsuarioResponse.from(usuarioRepository.save(usuario));
+    }
+
+    private void preencherComuns(Usuario u, String nome, String senha, TipoPessoa tipoPessoa, String doc, String email) {
+        u.setTipoPessoa(tipoPessoa);
+        u.setDocumento(doc);
         u.setNome(nome.trim());
-        u.setEmail(d.email());
-        // TODO: Configurar bean do encoder da senha e preencher ela criptografada.
+        u.setEmail(email);
+        u.setSenha(passwordEncoder.encode(senha));
     }
-
 
     private void validarUnicidade(String email, String documento) {
         if (usuarioRepository.existsByEmail(email)) {
