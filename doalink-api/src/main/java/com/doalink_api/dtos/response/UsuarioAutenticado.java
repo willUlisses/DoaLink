@@ -1,4 +1,7 @@
 package com.doalink_api.dtos.response;
 
-public class UsuarioAutenticado {
+public record UsuarioAutenticado(
+        Long id,
+        String email
+) {
 }
