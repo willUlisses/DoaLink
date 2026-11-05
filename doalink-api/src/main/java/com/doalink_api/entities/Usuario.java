@@ -3,8 +3,6 @@ package com.doalink_api.entities;
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.entities.enums.TipoUsuario;
 import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
