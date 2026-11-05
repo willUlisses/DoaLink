@@ -1,6 +1,7 @@
 package com.doalink_api.dtos.response;
 
 import com.doalink_api.entities.Endereco;
+import com.doalink_api.entities.ItemDoacao;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 
 public record OfertaDoacaoResponse(
@@ -10,12 +11,12 @@ public record OfertaDoacaoResponse(
         Endereco endereco
 ) {
 
-    public static OfertaDoacaoResponse from(OfertaDoacao o) {
+    public static OfertaDoacaoResponse from(ItemDoacao i) {
         return new OfertaDoacaoResponse(
-                o.getId(),
-                o.getQuantidade(),
-                o.getCategoria(),
-                EnderecoResponse.from(o.getEndereco())
+                i.getId(),
+                i.getQuantidade(),
+                i.getCategoria(),
+                EnderecoResponse.from(i.getEndereco())
         );
     }
 
