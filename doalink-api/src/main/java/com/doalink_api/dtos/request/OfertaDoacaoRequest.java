@@ -1,12 +1,18 @@
 package com.doalink_api.dtos.request;
 
-import com.doalink_api.entities.enums.TipoItemDoacao;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 public record OfertaDoacaoRequest(
-        @NotNull @Positive double quantidade,
-        @NotNull TipoItemDoacao itemDoacao,
-        @NotNull @Valid EnderecoRequest endereco
+        @NotEmpty(message = "A oferta deve conter ao menos um item de doação")
+        @Valid
+        List<ItemDoacaoRequest> itens,
+
+        @NotNull(message = "O endereço de coleta é obrigatório")
+        @Valid
+        EnderecoRequest endereco
 ) {
 }
