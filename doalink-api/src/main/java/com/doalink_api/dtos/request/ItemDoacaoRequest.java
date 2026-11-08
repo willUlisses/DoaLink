@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 public record ItemDoacaoRequest(
         @NotBlank(message = "A descrição do item é obrigatória")
-        @Size(max = 100, message = "A descrição deve ter no máximo 100 caracteres")
+        @Size(max = 500, message = "A descrição deve ter no máximo 100 caracteres")
         String descricao,
 
         @NotNull(message = "O tipo do item é obrigatório")
@@ -18,7 +18,7 @@ public record ItemDoacaoRequest(
 
         @NotNull(message = "A quantidade é obrigatória")
         @Positive(message = "A quantidade deve ser maior que zero")
-        BigDecimal quantidade
+        Double quantidadeu
 
 ) {
 }

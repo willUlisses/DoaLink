@@ -9,7 +9,7 @@ public record ItemDoacaoResponse(
         Long id,
         String descricao,
         TipoItemDoacao tipoItemDoacao,
-        BigDecimal quantidade
+        Double quantidade
 ) {
     public static ItemDoacaoResponse from(ItemDoacao item) {
         return new ItemDoacaoResponse(
