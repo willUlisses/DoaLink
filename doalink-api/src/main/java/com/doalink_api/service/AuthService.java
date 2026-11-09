@@ -55,7 +55,7 @@ public class AuthService {
         // TODO: Configurar cliente pra chamar api de validar cnpj
 
         Receptor receptor = new Receptor();
-        receptor.setEndereco(EnderecoMapper.toEndereco(req.endereco()));
+        receptor.setEnderecoOrganizacao(EnderecoMapper.toEndereco(req.endereco()));
         preencherComuns(receptor, req.nome(), req.senha(), TipoPessoa.JURIDICA, documento, email);
 
         return autenticarEGerarTokens(usuarioRepository.save(receptor));

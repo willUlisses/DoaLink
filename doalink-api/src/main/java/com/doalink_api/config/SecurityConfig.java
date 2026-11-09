@@ -46,6 +46,9 @@ public class SecurityConfig {
                                 "/auth/doadores/cadastro",
                                 "/auth/transportadores/cadastro",
                                 "/auth/receptores/cadastro").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
+                        .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
                         .anyRequest().authenticated()
                 ).exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
