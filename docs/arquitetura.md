@@ -42,6 +42,7 @@ com.doalink_api
 - Não contém regra de negócio nem acessa repository ou entidades diretamente.
 - Define a anotação de rota, mas o acesso por perfil (RBAC) é declarado na `SecurityConfig` (ou `@PreAuthorize`), nunca com `if` dentro do método.
 - Cookies de sessão são escritos aqui, por meio do `CookieService`, porque dependem de `HttpServletResponse`.
+- **Segregação de Contratos e OpenAPI (ADR 0007):** Cada controller possui uma interface de contrato (ex.: `IAuthController`, `IOfertaDoacaoController`) que concentra as anotações do OpenAPI 3 (`@Tag`, `@Operation`, `@ApiResponses`, `@Parameter`), mapeamentos de rotas (`@RequestMapping`, `@PostMapping`, etc.) e validações. A classe concreta apenas implementa a interface com `@RestController` e `@Override`, garantindo legibilidade e ausência de ruído declarativo no código executável.
 
 ### DTOs (`dtos/`)
 

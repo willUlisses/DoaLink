@@ -12,17 +12,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements IAuthController {
 
     private final AuthService authService;
     private final CookieService cookieService;
 
-    @PostMapping("/doadores/cadastro")
+    @Override
     public ResponseEntity<UsuarioResponse> cadastrarDoador(
             @RequestBody @Valid CadastroComumRequest req,
             HttpServletResponse res) {
@@ -31,7 +31,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
     }
 
-    @PostMapping("/transportadores/cadastro")
+    @Override
     public ResponseEntity<UsuarioResponse> cadastrarTransportador(
             @RequestBody @Valid CadastroComumRequest req,
             HttpServletResponse res) {
@@ -40,7 +40,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
     }
 
-    @PostMapping("/receptores/cadastro")
+    @Override
     public ResponseEntity<UsuarioResponse> cadastrarReceptor(
             @RequestBody @Valid CadastroReceptorRequest req,
             HttpServletResponse res) {
@@ -49,7 +49,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
     }
 
-    @PostMapping("/login")
+    @Override
     public ResponseEntity<UsuarioResponse> login(
             @RequestBody @Valid LoginRequest req,
             HttpServletResponse res) {
@@ -58,18 +58,18 @@ public class AuthController {
         return ResponseEntity.ok(auth.usuario());
     }
 
-    @PostMapping("/refresh")
+    @Override
     public ResponseEntity<UsuarioResponse> refresh(
-            @CookieValue(name = CookieService.REFRESH, required = false) String refreshToken,
+            String refreshToken,
             HttpServletResponse res) {
         AuthResponse auth = authService.refresh(refreshToken);
         cookieService.adicionarHeaders(res, auth.accessToken(), auth.refreshToken());
         return ResponseEntity.ok(auth.usuario());
     }
 
-    @PostMapping("/logout")
+    @Override
     public ResponseEntity<Void> logout(
-            @CookieValue(name = CookieService.REFRESH, required = false) String refreshToken,
+            String refreshToken,
             HttpServletResponse res) {
         authService.logout(refreshToken);
         cookieService.limpar(res);

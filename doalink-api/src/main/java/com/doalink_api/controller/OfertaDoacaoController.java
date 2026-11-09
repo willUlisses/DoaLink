@@ -9,27 +9,24 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/ofertas")
 @RequiredArgsConstructor
-public class OfertaDoacaoController {
+public class OfertaDoacaoController implements IOfertaDoacaoController {
 
     private final OfertaDoacaoService ofertaService;
 
-    /**
-     * POST /ofertas — cria oferta (DOADOR)
-     * Retorna 201 + Location: /ofertas/{id}
-     */
-    @PostMapping
+    @Override
     public ResponseEntity<OfertaDoacaoResponse> criar(
             @RequestBody @Valid OfertaDoacaoRequest req,
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
@@ -40,47 +37,30 @@ public class OfertaDoacaoController {
         return ResponseEntity.created(location).body(resp);
     }
 
-    /**
-     * GET /ofertas/minhas — minhas ofertas (DOADOR)
-     */
-    @GetMapping("/minhas")
+    @Override
     public ResponseEntity<List<OfertaDoacaoResponse>> listarMinhas(
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
-
         return ResponseEntity.ok(ofertaService.listarMinhas(usuario.id()));
     }
 
-    /**
-     * GET /ofertas — consulta pública paginada (qualquer autenticado)
-     * Filtros opcionais: categoria, cidade, estado
-     */
-    @GetMapping
+    @Override
     public ResponseEntity<Page<OfertaDoacaoResponse>> listarDisponiveis(
-            @PageableDefault(size = 20, sort = "criadoEm") Pageable pageable,
+            Pageable pageable,
             @RequestParam(required = false) TipoItemDoacao categoria,
             @RequestParam(required = false) String cidade,
             @RequestParam(required = false) String estado) {
-
         return ResponseEntity.ok(ofertaService.listarDisponiveis(pageable, categoria, cidade, estado));
     }
 
-    /**
-     * GET /ofertas/{id} — detalhe da oferta (qualquer autenticado)
-     */
-    @GetMapping("/{id}")
+    @Override
     public ResponseEntity<OfertaDoacaoResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(ofertaService.buscarPorId(id));
     }
 
-    /**
-     * PATCH /ofertas/{id}/cancelar — cancela oferta (DOADOR dono)
-     * Retorna 204 No Content
-     */
-    @PatchMapping("/{id}/cancelar")
+    @Override
     public ResponseEntity<Void> cancelar(
             @PathVariable Long id,
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
-
         ofertaService.cancelar(usuario.id(), id);
         return ResponseEntity.noContent().build();
     }
