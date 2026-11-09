@@ -47,7 +47,7 @@ class OfertaDoacaoServiceTest {
         doador = new Doador("12345678901", "João Silva", "joao@email.com", "hash", "11999999999", TipoPessoa.FISICA);
         doador.setId(1L);
 
-        itemReq = new ItemDoacaoRequest("Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.valueOf(5));
+        itemReq = new ItemDoacaoRequest("Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
 
         enderecoReq = new EnderecoRequest(
                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310-100");
@@ -216,7 +216,7 @@ class OfertaDoacaoServiceTest {
 
         for (int i = 0; i < qtdItens; i++) {
             oferta.adicionarItem(new ItemDoacao(
-                    "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.valueOf(5)));
+                    "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D));
         }
 
         // Simula @PrePersist (campos são private sem setter)

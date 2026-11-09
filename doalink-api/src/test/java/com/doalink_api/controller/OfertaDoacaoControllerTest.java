@@ -82,7 +82,7 @@ class OfertaDoacaoControllerTest {
 
     private OfertaDoacaoResponse responseExemplo() {
         ItemDoacaoResponse item = new ItemDoacaoResponse(
-                1L, "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.valueOf(5));
+                1L, "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
         EnderecoResponse endereco = new EnderecoResponse(
                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310100");
         ContatoResponse contato = new ContatoResponse("João Silva", "joao@email.com", "11999999999");
@@ -93,7 +93,7 @@ class OfertaDoacaoControllerTest {
 
     private OfertaDoacaoRequest reqValida() {
         ItemDoacaoRequest item = new ItemDoacaoRequest(
-                "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.valueOf(5));
+                "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
         EnderecoRequest endereco = new EnderecoRequest(
                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310-100");
         return new OfertaDoacaoRequest(List.of(item), endereco);
@@ -135,7 +135,7 @@ class OfertaDoacaoControllerTest {
     @DisplayName("POST /ofertas: quantidade ≤ 0 → 400")
     void criar_quantidadeZero_deveRetornar400() throws Exception {
         ItemDoacaoRequest itemInvalido = new ItemDoacaoRequest(
-                "Arroz", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.ZERO);
+                "Arroz", TipoItemDoacao.NAO_PERECIVEL, 0D);
 
         mockMvc.perform(post("/ofertas")
                         .with(AS_DOADOR)
@@ -163,7 +163,7 @@ class OfertaDoacaoControllerTest {
     @DisplayName("POST /ofertas: descricao em branco → 400")
     void criar_descricaoEmBranco_deveRetornar400() throws Exception {
         ItemDoacaoRequest itemInvalido = new ItemDoacaoRequest(
-                "   ", TipoItemDoacao.NAO_PERECIVEL, BigDecimal.valueOf(5));
+                "   ", TipoItemDoacao.NAO_PERECIVEL, 5D);
 
         mockMvc.perform(post("/ofertas")
                         .with(AS_DOADOR)

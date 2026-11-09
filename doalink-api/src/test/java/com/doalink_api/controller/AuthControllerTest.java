@@ -1,6 +1,5 @@
 package com.doalink_api.controller;
 
-import com.doalink_api.dtos.request.CadastroComumRequest;
 import com.doalink_api.dtos.request.LoginRequest;
 import com.doalink_api.dtos.response.AuthResponse;
 import com.doalink_api.dtos.response.UsuarioResponse;
