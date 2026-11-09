@@ -39,6 +39,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login",
                                 "/auth/refresh",
@@ -46,6 +51,9 @@ public class SecurityConfig {
                                 "/auth/doadores/cadastro",
                                 "/auth/transportadores/cadastro",
                                 "/auth/receptores/cadastro").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
+                        .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
                         .anyRequest().authenticated()
                 ).exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
@@ -70,7 +78,7 @@ public class SecurityConfig {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(origins);
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-        cfg.setAllowedHeaders(List.of("Content-Type"));
+        cfg.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         cfg.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);

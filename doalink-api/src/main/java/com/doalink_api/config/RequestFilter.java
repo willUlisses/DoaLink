@@ -30,9 +30,19 @@ public class RequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
+        String token = null;
         Cookie cookie = WebUtils.getCookie(request, CookieService.ACCESS);
         if (cookie != null) {
-            jwtService.validar(cookie.getValue()).ifPresent(jwt -> {
+            token = cookie.getValue();
+        } else {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+            }
+        }
+
+        if (token != null) {
+            jwtService.validar(token).ifPresent(jwt -> {
                 var principal = new UsuarioAutenticado(
                         Long.valueOf(jwt.getSubject()), jwt.getClaim("email").asString());
                 var authorities = List.of(

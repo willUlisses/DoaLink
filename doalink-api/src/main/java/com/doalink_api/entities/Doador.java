@@ -17,8 +17,13 @@ public class Doador extends Usuario {
         setTipoUsuario(TipoUsuario.DOADOR);
     }
 
+    /** Usado pelo AuthService no cadastro (telefone opcional, passado como null se não informado). */
     public Doador(String documento, String nome, String email, String senha, TipoPessoa tipoPessoa) {
-        super(documento, nome, email, senha, TipoUsuario.DOADOR, tipoPessoa);
+        super(documento, nome, email, senha, null, TipoUsuario.DOADOR, tipoPessoa);
     }
 
+    /** Construtor completo com telefone. */
+    public Doador(String documento, String nome, String email, String senha, String telefone, TipoPessoa tipoPessoa) {
+        super(documento, nome, email, senha, telefone, TipoUsuario.DOADOR, tipoPessoa);
+    }
 }

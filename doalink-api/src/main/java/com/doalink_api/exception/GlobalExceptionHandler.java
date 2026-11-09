@@ -21,6 +21,22 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.NOT_FOUND.value()),
+                HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.FORBIDDEN.value()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
     @ExceptionHandler(TokenInvalidoException.class)
     public ResponseEntity<ErrorResponse> handleTokenInvalidoException(TokenInvalidoException e) {
         return new ResponseEntity<>(

@@ -17,8 +17,13 @@ public class Transportador extends Usuario {
         setTipoUsuario(TipoUsuario.TRANSPORTADOR);
     }
 
+    /** Usado pelo AuthService no cadastro (telefone opcional). */
     public Transportador(String documento, String nome, String email, String senha, TipoPessoa tipoPessoa) {
-        super(documento, nome, email, senha, TipoUsuario.TRANSPORTADOR, tipoPessoa);
+        super(documento, nome, email, senha, null, TipoUsuario.TRANSPORTADOR, tipoPessoa);
     }
 
+    /** Construtor completo com telefone. */
+    public Transportador(String documento, String nome, String email, String senha, String telefone, TipoPessoa tipoPessoa) {
+        super(documento, nome, email, senha, telefone, TipoUsuario.TRANSPORTADOR, tipoPessoa);
+    }
 }

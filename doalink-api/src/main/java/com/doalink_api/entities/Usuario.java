@@ -2,18 +2,8 @@ package com.doalink_api.entities;
 
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.entities.enums.TipoUsuario;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "usuarios")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -43,6 +32,23 @@ public abstract class Usuario {
     @Column(nullable = false)
     private String senha;
 
+    /** Opcional — normalizado sem pontuação quando informado. */
+    @Column
+    private String telefone;
+
+    /** Endereço opcional do usuário (ex.: endereço pessoal do doador). */
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "cep",         column = @Column(name = "endereco_cep")),
+        @AttributeOverride(name = "logradouro",  column = @Column(name = "endereco_logradouro")),
+        @AttributeOverride(name = "numero",      column = @Column(name = "endereco_numero")),
+        @AttributeOverride(name = "complemento", column = @Column(name = "endereco_complemento")),
+        @AttributeOverride(name = "bairro",      column = @Column(name = "endereco_bairro")),
+        @AttributeOverride(name = "cidade",      column = @Column(name = "endereco_cidade")),
+        @AttributeOverride(name = "estado",      column = @Column(name = "endereco_estado"))
+    })
+    private Endereco endereco;
+
     @Setter(AccessLevel.PROTECTED)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -52,68 +58,12 @@ public abstract class Usuario {
     @Column(nullable = false)
     private TipoPessoa tipoPessoa;
 
-    public Usuario(String documento, String nome, String email, String senha, TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
+    public Usuario(String documento, String nome, String email, String senha, String telefone, TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
         this.documento = documento;
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.tipoUsuario = tipoUsuario;
-        this.tipoPessoa = tipoPessoa;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDocumento() {
-        return documento;
-    }
-
-    public void setDocumento(String documento) {
-        this.documento = documento;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public TipoUsuario getTipoUsuario() {
-        return tipoUsuario;
-    }
-
-    public void setTipoUsuario(TipoUsuario tipoUsuario) {
-        this.tipoUsuario = tipoUsuario;
-    }
-
-    public TipoPessoa getTipoPessoa() {
-        return tipoPessoa;
-    }
-
-    public void setTipoPessoa(TipoPessoa tipoPessoa) {
         this.tipoPessoa = tipoPessoa;
     }
 

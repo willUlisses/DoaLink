@@ -4,11 +4,17 @@ import lombok.Getter;
 
 @Getter
 public enum TipoItemDoacao {
-    PERECIVEL,
-    NAO_PERECIVEL,
-    HIGIENE,
-    ROUPAS_E_TEXTIL,
-    MEDICAMENTOS,
-    ELETRODOMESTICOS;
+    PERECIVEL("Prefecivel"),
+    NAO_PERECIVEL("NaoPerecivel"),
+    HIGIENE("Higiene"),
+    ROUPAS_E_TEXTIL("RoupasETextil"),
+    MEDICAMENTOS("Medicamentos"),
+    ELETRODOMESTICOS("Eletrodomesticos");
+
+    private final String Descrisao;
+
+    TipoItemDoacao(String descrisao) {
+        Descrisao = descrisao;
+    }
 
 }
