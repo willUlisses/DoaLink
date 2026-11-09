@@ -13,7 +13,7 @@ public enum TipoItemDoacao {
 
     private final String Descrisao;
 
-    TipoUnidade(String descrisao) {
+    TipoItemDoacao(String descrisao) {
         Descrisao = descrisao;
     }
 

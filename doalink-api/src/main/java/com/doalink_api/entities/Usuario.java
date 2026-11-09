@@ -58,8 +58,7 @@ public abstract class Usuario {
     @Column(nullable = false)
     private TipoPessoa tipoPessoa;
 
-    public Usuario(String documento, String nome, String email, String senha
-            , TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
+    public Usuario(String documento, String nome, String email, String senha, String telefone, TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
         this.documento = documento;
         this.nome = nome;
         this.email = email;
@@ -67,4 +66,5 @@ public abstract class Usuario {
         this.tipoUsuario = tipoUsuario;
         this.tipoPessoa = tipoPessoa;
     }
+
 }
