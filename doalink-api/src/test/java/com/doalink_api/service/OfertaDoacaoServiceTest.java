@@ -22,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,9 +33,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OfertaDoacaoServiceTest {
 
-    @Mock private OfertaDoacaoRepository ofertaRepository;
-    @Mock private DoadorRepository doadorRepository;
-    @InjectMocks private OfertaDoacaoService service;
+    @Mock
+    private OfertaDoacaoRepository ofertaRepository;
+    @Mock
+    private DoadorRepository doadorRepository;
+    @InjectMocks
+    private OfertaDoacaoService service;
 
     private Doador doador;
     private ItemDoacaoRequest itemReq;
@@ -227,7 +229,8 @@ class OfertaDoacaoServiceTest {
             var f2 = OfertaDoacao.class.getDeclaredField("atualizadoEm");
             f2.setAccessible(true);
             f2.set(oferta, LocalDateTime.now());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return oferta;
     }
