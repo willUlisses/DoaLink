@@ -106,7 +106,7 @@ O Transportador preenche apenas os dados comuns.
 |---|---|---|---|
 | \*E-mail de acesso | VARCHAR(254) | — | Deve corresponder a um e-mail cadastrado. |
 | \*Senha nova | hash | — | Mesmos critérios de RF-001. Nunca armazenada em texto puro. |
-| Token de recuperação | VARCHAR (hash) | — | Link de uso único enviado ao e-mail. Deve ter validade e ser invalidado após o uso. A validade é a definir. |
+| Token de recuperação | VARCHAR (hash) | — | Link de uso único enviado ao e-mail. Deve ter validade e ser invalidado após o uso. A validade é de 10 minutos após a solicitação. |
 
 **Critérios de aceite**
 
@@ -148,7 +148,7 @@ O Transportador preenche apenas os dados comuns.
 
 | Item | Requisitos afetados | Situação |
 |---|---|---|
-| Validade do link de recuperação de senha | RF-003 | Em aberto |
+| Validade do link de recuperação de senha | RF-003 | Resolvido: 10 minutos (ver Spec 0003 e ADR 0008) |
 | Validade do código de confirmação de e-mail | RF-010 | Em aberto |
 | Múltiplos perfis por cadastro | RF-001 | Não suportado nesta versão — decisão futura pendente |
 | Número de identificação: forma de exibição ao participante | RF-001 | Em aberto |
