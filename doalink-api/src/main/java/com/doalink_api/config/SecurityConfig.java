@@ -50,7 +50,10 @@ public class SecurityConfig {
                                 "/auth/logout",
                                 "/auth/doadores/cadastro",
                                 "/auth/transportadores/cadastro",
-                                "/auth/receptores/cadastro").permitAll()
+                                "/auth/receptores/cadastro",
+                                "/auth/recuperar-senha",
+                                "/auth/redefinir-senha").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth/recuperar-senha/validar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
                         .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
