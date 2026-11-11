@@ -8,7 +8,7 @@ public class EnderecoMapper {
     public static Endereco toEndereco(EnderecoRequest er) {
         Endereco e = new Endereco();
         e.setLogradouro(er.logradouro());
-        e.setNumero(er.numero());
+        e.setNumero(er.numero() == null || er.numero().isBlank() ? "S/N" : er.numero().trim());
         e.setComplemento(er.complemento());
         e.setBairro(er.bairro());
         e.setCidade(er.cidade());

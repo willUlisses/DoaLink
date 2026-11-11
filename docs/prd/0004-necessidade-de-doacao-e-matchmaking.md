@@ -2,7 +2,7 @@
 
 - **Status:** Proposto
 - **Data:** 2026-11-09
-- **Especificações:** _(a criar — Spec 0004 para RF-006 e Spec 0005 para RF-007)_
+- **Especificações:** [Spec 0004 — RF-006](../specs/0004-necessidade-de-doacao.md); Spec 0005 — RF-007 (a criar)
 
 ---
 
@@ -36,7 +36,7 @@ O sistema **não faz**:
 | Campo | Tipo sugerido | Máscara | Validação e observações |
 |---|---|---|---|
 | \*Item necessário ¹ | ENUM ou catálogo | — | Obrigatório. Deve usar as mesmas categorias do catálogo de RF-004. |
-| \*Quantidade necessária | DECIMAL(12,3) | Conforme unidade | Obrigatório. Deve ser maior que zero. Unidade compatível com as ofertas. |
+| \*Quantidade necessária | Double | Conforme unidade | Obrigatório. Deve ser maior que zero. Unidade compatível com as ofertas. |
 | \*Local de entrega ² | Endereço estruturado | Conforme campos de endereço | Obrigatório. CEP, estado (UF), cidade, bairro e logradouro obrigatórios. Número opcional (padrão `S/N`). Complemento opcional. |
 
 ¹ O catálogo de itens da necessidade deve ser compatível com o catálogo de itens da oferta (mesmo enum de categorias definido em RF-004).
@@ -62,8 +62,8 @@ O sistema **não faz**:
 | Oferta de doação | Referência à oferta | Deve referenciar uma oferta com situação `DISPONIVEL`. |
 | Necessidade do Receptor | Referência à necessidade | Deve referenciar uma necessidade cadastrada compatível com o tipo de item ofertado. |
 | Tipo do item | ENUM (catálogo RF-004) | A oferta e a necessidade devem corresponder ao mesmo tipo de item ou a tipos considerados compatíveis (regra a definir). |
-| Quantidade ofertada | DECIMAL(12,3) | Deve ser maior que zero e compatível com a quantidade necessária. |
-| Quantidade necessária | DECIMAL(12,3) | Deve ser maior que zero. O sistema compara com a quantidade ofertada. |
+| Quantidade ofertada | Double | Deve ser maior que zero e compatível com a quantidade necessária. |
+| Quantidade necessária | Double | Deve ser maior que zero. O sistema compara com a quantidade ofertada. |
 | Disponibilidade de transporte | Referência à disponibilidade | Opcional. Quando a proposta exigir transporte, deve referenciar uma disponibilidade compatível com quantidade, origem, destino e data. |
 | Localização de origem e entrega | Endereços de RF-004 e RF-006 | A origem da oferta e o local de entrega devem ser atendidos pelo transporte selecionado, quando houver. |
 | Data | DATE ou TIMESTAMP | As datas de oferta, necessidade e disponibilidade de transporte devem ser compatíveis. |
@@ -96,8 +96,10 @@ O sistema **não faz**:
 | Tipos de item considerados compatíveis (mesmo enum ou conversão) | RF-006, RF-007 | Em aberto |
 | Regras de conversão de unidade entre oferta e necessidade | RF-007 | Em aberto |
 | Estados e transições da situação da proposta | RF-007 | Em aberto |
-| Regras de visibilidade das necessidades (pública ou restrita) | RF-006 | Em aberto |
-| Cancelamento / edição de necessidade após registro | RF-006 | Em aberto |
+| Regras de visibilidade das necessidades (pública ou restrita) | RF-006 | Resolvida na Spec 0004: consulta autenticada por situação; rota pessoal restrita ao receptor |
+| Cancelamento / edição de necessidade após registro | RF-006 | Resolvida na Spec 0004: fora do escopo da primeira versão |
+
+**Decisões para RF-006:** necessidades autenticadas são consultáveis por situação para viabilizar o RF-007; `GET /necessidades/minhas` é restrito ao receptor. RF-006 não oferece edição ou cancelamento. A descrição do item é opcional; quando informada, tem até 500 caracteres. A unidade é obrigatória e usa `TipoUnidade` compartilhado com ofertas. Estas decisões ficam limitadas à implementação RF-006; regras futuras de compatibilidade de unidade permanecem pendentes para RF-007.
 
 ---
 

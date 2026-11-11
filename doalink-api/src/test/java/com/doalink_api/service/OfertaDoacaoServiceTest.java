@@ -9,6 +9,7 @@ import com.doalink_api.entities.ItemDoacao;
 import com.doalink_api.entities.OfertaDoacao;
 import com.doalink_api.entities.enums.SituacaoOferta;
 import com.doalink_api.entities.enums.TipoItemDoacao;
+import com.doalink_api.entities.enums.TipoUnidade;
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
@@ -33,9 +34,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class OfertaDoacaoServiceTest {
 
-    @Mock private OfertaDoacaoRepository ofertaRepository;
-    @Mock private DoadorRepository doadorRepository;
-    @InjectMocks private OfertaDoacaoService service;
+    @Mock
+    private OfertaDoacaoRepository ofertaRepository;
+    @Mock
+    private DoadorRepository doadorRepository;
+    @InjectMocks
+    private OfertaDoacaoService service;
 
     private Doador doador;
     private ItemDoacaoRequest itemReq;
@@ -46,7 +50,7 @@ class OfertaDoacaoServiceTest {
         doador = new Doador("12345678901", "João Silva", "joao@email.com", "hash", "11999999999", TipoPessoa.FISICA);
         doador.setId(1L);
 
-        itemReq = new ItemDoacaoRequest("Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
+        itemReq = new ItemDoacaoRequest("Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 5.0);
 
         enderecoReq = new EnderecoRequest(
                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310-100");
@@ -215,7 +219,7 @@ class OfertaDoacaoServiceTest {
 
         for (int i = 0; i < qtdItens; i++) {
             oferta.adicionarItem(new ItemDoacao(
-                    "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D));
+                    "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5.0));
         }
 
         // Simula @PrePersist (campos são private sem setter)
@@ -226,7 +230,8 @@ class OfertaDoacaoServiceTest {
             var f2 = OfertaDoacao.class.getDeclaredField("atualizadoEm");
             f2.setAccessible(true);
             f2.set(oferta, LocalDateTime.now());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return oferta;
     }

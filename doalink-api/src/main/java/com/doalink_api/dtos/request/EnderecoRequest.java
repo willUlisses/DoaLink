@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public record EnderecoRequest(
         @NotBlank String logradouro,
-        @NotBlank String numero,
+        String numero,
         String complemento,
         @NotBlank String bairro,
         @NotBlank String cidade,
