@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
                         .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.POST, "/necessidades").hasRole("RECEPTOR")
+                        .requestMatchers("/necessidades/minhas").hasRole("RECEPTOR")
                         .anyRequest().authenticated()
                 ).exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
