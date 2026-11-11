@@ -27,17 +27,21 @@ public class ItemDoacao {
     @Column(name = "tipo_item_doacao", nullable = false)
     private TipoItemDoacao tipoItemDoacao;
 
-    @Column(nullable = false )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_unidade", nullable = false, length = 50)
     private TipoUnidade tipoUnidade;
 
-    //Kg
     @Positive
     @Column(nullable = false)
     private Double quantidade;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "oferta_id", nullable = false)
+    @JoinColumn(name = "oferta_id")
     private OfertaDoacao oferta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "necessidade_id")
+    private NecessidadeDoacao necessidade;
 
     public ItemDoacao(String descricao, TipoItemDoacao tipoItemDoacao, Double quantidade) {
         this.descricao = descricao;

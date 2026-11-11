@@ -6,6 +6,7 @@ import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.*;
 import com.doalink_api.entities.enums.SituacaoOferta;
 import com.doalink_api.entities.enums.TipoItemDoacao;
+import com.doalink_api.entities.enums.TipoUnidade;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.GlobalExceptionHandler;
 import com.doalink_api.exception.NotFoundException;
@@ -82,7 +83,7 @@ class OfertaDoacaoControllerTest {
 
         private OfertaDoacaoResponse responseExemplo() {
                 ItemDoacaoResponse item = new ItemDoacaoResponse(
-                                1L, "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
+                                1L, "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 5.0);
                 EnderecoResponse endereco = new EnderecoResponse(
                                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310100");
                 ContatoResponse contato = new ContatoResponse("João Silva", "joao@email.com", "11999999999");
@@ -93,7 +94,7 @@ class OfertaDoacaoControllerTest {
 
         private OfertaDoacaoRequest reqValida() {
                 ItemDoacaoRequest item = new ItemDoacaoRequest(
-                                "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, 5D);
+                                "Arroz tipo 1", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 5.0);
                 EnderecoRequest endereco = new EnderecoRequest(
                                 "Rua das Flores", "10", null, "Centro", "São Paulo", "SP", "01310-100");
                 return new OfertaDoacaoRequest(List.of(item), endereco);
@@ -136,7 +137,7 @@ class OfertaDoacaoControllerTest {
         @DisplayName("POST /ofertas: quantidade ≤ 0 → 400")
         void criar_quantidadeZero_deveRetornar400() throws Exception {
                 ItemDoacaoRequest itemInvalido = new ItemDoacaoRequest(
-                                "Arroz", TipoItemDoacao.NAO_PERECIVEL, 0D);
+                                "Arroz", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 0.0);
 
                 mockMvc.perform(post("/ofertas")
                                 .with(AS_DOADOR)
@@ -164,7 +165,7 @@ class OfertaDoacaoControllerTest {
         @DisplayName("POST /ofertas: descricao em branco → 400")
         void criar_descricaoEmBranco_deveRetornar400() throws Exception {
                 ItemDoacaoRequest itemInvalido = new ItemDoacaoRequest(
-                                "   ", TipoItemDoacao.NAO_PERECIVEL, 5D);
+                                "   ", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 5.0);
 
                 mockMvc.perform(post("/ofertas")
                                 .with(AS_DOADOR)
