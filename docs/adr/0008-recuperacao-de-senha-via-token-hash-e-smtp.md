@@ -5,7 +5,7 @@ description: Como escrever decisões de arquitetura neste projeto. Use ao criar,
 
 # ADR 0008: Recuperação de senha via token opaco hashado e envio SMTP (Mailpit)
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-11-10
 
 ## Contexto
