@@ -38,14 +38,15 @@ Permite ao doador registrar uma oferta de doação contendo um ou mais itens, um
 | Campo | Tipo Java | Coluna | Regras |
 |---|---|---|---|
 | `id` | `Long` | `id` PK | Gerado automaticamente |
-| `descricao` | `String` | `descricao` | `NOT NULL`, `length=100` |
+| `descricao` | `String` | `descricao` | `NOT NULL`, `length=500` |
 | `tipoItemDoacao` | `TipoItemDoacao` | `tipo_item_doacao` | `NOT NULL`, `@Enumerated(STRING)` |
-| `quantidade` | `BigDecimal` | `quantidade` | `NOT NULL`, `precision=12 scale=3` |
-| `oferta` | `OfertaDoacao` | `oferta_id` FK | `NOT NULL`, `@ManyToOne LAZY` |
+| `quantidade` | `Double` | `quantidade` | `NOT NULL` |
+| `oferta` | `OfertaDoacao` | `oferta_id` FK | Nulo apenas quando o item pertence a uma necessidade |
+| `necessidade` | `NecessidadeDoacao` | `necessidade_id` FK | Nulo apenas quando o item pertence a uma oferta |
 
 **Enum `TipoItemDoacao`:** `PERECIVEL`, `NAO_PERECIVEL`, `HIGIENE`, `ROUPAS_E_TEXTIL`, `MEDICAMENTOS`, `ELETRODOMESTICOS`
 
-> Unidade de medida está fixada em KG no back-end; não é exposta na API nesta versão.
+Cada `ItemDoacao` pertence exatamente a uma oferta ou necessidade. A constraint `ck_itens_doacao_vinculo` garante essa regra. `tipoUnidade` usa o enum textual `TipoUnidade` e é parte do contrato da API.
 
 ---
 
@@ -68,16 +69,17 @@ O `Receptor` mantém seu próprio endereço obrigatório (`enderecoOrganizacao`)
 |---|---|---|---|
 | `OfertaDoacaoRequest` | `itens` | `List<ItemDoacaoRequest>` | `@NotEmpty`, `@Size(max=20)`, `@Valid` |
 | | `endereco` | `EnderecoRequest` | Opcional — sem `@NotNull`; `@Valid` quando presente |
-| `ItemDoacaoRequest` | `descricao` | `String` | `@NotBlank`, `@Size(max=100)` |
+| `ItemDoacaoRequest` | `descricao` | `String` | `@NotBlank`, `@Size(max=500)` |
 | | `tipoItemDoacao` | `TipoItemDoacao` | `@NotNull` |
-| | `quantidade` | `BigDecimal` | `@NotNull`, `@Positive` |
+| | `tipoUnidade` | `TipoUnidade` | `@NotNull` |
+| | `quantidade` | `Double` | `@NotNull`, `@Positive` |
 
 ### Responses
 
 | DTO | Campos |
 |---|---|
 | `OfertaDoacaoResponse` | `id`, `situacao`, `doador` (ContatoResponse), `localRetirada` (EnderecoResponse), `itens` (List\<ItemDoacaoResponse\>), `criadoEm`, `atualizadoEm` |
-| `ItemDoacaoResponse` | `id`, `descricao`, `tipoItemDoacao`, `quantidade` |
+| `ItemDoacaoResponse` | `id`, `descricao`, `tipoItemDoacao`, `tipoUnidade`, `quantidade` |
 | `ContatoResponse` | `nome`, `email`, `telefone` — nunca expõe `documento` (CPF/CNPJ) |
 
 ---
@@ -145,7 +147,7 @@ O `RequestFilter` já popula a authority `ROLE_<TipoUsuario>` a partir do claim 
 | Mapper | Método | Responsabilidade |
 |---|---|---|
 | `OfertaDoacaoMapper` | `toEntity(OfertaDoacaoRequest, Doador)` | Mapeia endereço (via `EnderecoMapper`) e delega cada item ao `ItemDoacaoMapper`; chama `adicionarItem()` para manter os dois lados da relação |
-| `ItemDoacaoMapper` | `toEntity(ItemDoacaoRequest)` | Trim na descrição, unidade fixada em `KG` |
+| `ItemDoacaoMapper` | `toEntity(ItemDoacaoRequest)` | Trim na descrição e mapeia `tipoUnidade` |
 
 ---
 

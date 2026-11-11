@@ -72,6 +72,7 @@ com.doalink_api
 - Enums sempre com `@Enumerated(EnumType.STRING)`.
 - O documento (CPF ou CNPJ) é guardado em um único campo `documento`, **normalizado** (sem pontuação), junto de `tipoPessoa`. A unicidade é garantida por constraint no banco.
 - Dados de endereço do Receptor ficam em um `@Embeddable` (`Endereco`).
+- `OfertaDoacao` e `NecessidadeDoacao` representam as intenções de doação de Doadores e Receptores, respectivamente. Ambas compartilham a entidade `ItemDoacao` (`itens_doacao`), garantindo unicidade de vínculo com a oferta ou necessidade via constraint de verificação (`ck_itens_doacao_vinculo`). As quantidades utilizam `FLOAT8` (`Double`) e as unidades são padronizadas pelo enum `TipoUnidade`.
 
 ### Exceções (`exception/`)
 
@@ -96,7 +97,9 @@ com.doalink_api
 - Rotas públicas de autenticação ficam sob `/auth`: `/auth/login`, `/auth/refresh`, `/auth/logout` e um cadastro por perfil (`/auth/doadores/cadastro`, `/auth/transportadores/cadastro`, `/auth/receptores/cadastro`).
 - O perfil é definido pela **rota**, não por um campo do corpo, então não há como um cliente se cadastrar em um perfil não previsto.
 - Rotas públicas são listadas explicitamente na `SecurityConfig`, sem curinga `/auth/**`.
-- Todas as demais rotas exigem autenticação; rotas de domínio exigem a role do perfil.
+- Todas as demais rotas exigem autenticação; rotas de domínio exigem a role do perfil:
+  - `/ofertas`: criação (`POST`), listagem pessoal (`GET /minhas`) e cancelamento (`PATCH /{id}/cancelar`) exigem `ROLE_DOADOR`. Consulta pública (`GET`) e detalhamento (`GET /{id}`) exigem usuário autenticado.
+  - `/necessidades`: criação (`POST`) e listagem pessoal (`GET /minhas`) exigem `ROLE_RECEPTOR`. Listagem por situação (`GET ?situacao=`) e busca por id (`GET /{id}`) exigem usuário autenticado para viabilizar compatibilidade e matchmaking (RF-007).
 
 ### Banco de dados
 
