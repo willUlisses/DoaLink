@@ -39,7 +39,7 @@ O sistema **não faz**:
 | \*Itens da oferta | Lista de ItemDoacao | — | Obrigatório; mínimo 1 item, máximo 20 itens por oferta. |
 | \*Tipo do item ¹ | ENUM | — | Obrigatório por item. Deve pertencer ao catálogo fixo de categorias. |
 | \*Descrição do item | VARCHAR(100) | — | Obrigatório por item. |
-| \*Quantidade | DECIMAL(12,3) | Conforme unidade | Obrigatório por item. Deve ser maior que zero. Unidade fixada em quilogramas (KG) nesta versão. |
+| \*Quantidade | Double | Conforme unidade | Obrigatório por item. Deve ser maior que zero. Unidade fixada em quilogramas (KG) nesta versão. |
 | Local de retirada ² | Endereço estruturado | Conforme campos de endereço | Opcional. Quando não informado, o local de retirada é definido em acordo entre as partes fora do sistema. |
 | Situação da oferta | ENUM | — | Gerenciado pelo sistema. Valores: `DISPONIVEL`, `RESERVADA`, `CONCLUIDA`, `CANCELADA`. Valor inicial: `DISPONIVEL`. |
 
