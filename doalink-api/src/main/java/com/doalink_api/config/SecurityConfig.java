@@ -51,6 +51,8 @@ public class SecurityConfig {
                                 "/auth/doadores/cadastro",
                                 "/auth/transportadores/cadastro",
                                 "/auth/receptores/cadastro",
+                                "/auth/verificar-email",
+                                "/auth/reenviar-codigo",
                                 "/auth/recuperar-senha",
                                 "/auth/redefinir-senha").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/recuperar-senha/validar").permitAll()

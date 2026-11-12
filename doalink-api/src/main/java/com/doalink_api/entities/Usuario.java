@@ -58,6 +58,9 @@ public abstract class Usuario {
     @Column(nullable = false)
     private TipoPessoa tipoPessoa;
 
+    @Column(name = "email_verificado", nullable = false)
+    private boolean emailVerificado = false;
+
     public Usuario(String documento, String nome, String email, String senha, String telefone, TipoUsuario tipoUsuario, TipoPessoa tipoPessoa) {
         this.documento = documento;
         this.nome = nome;
