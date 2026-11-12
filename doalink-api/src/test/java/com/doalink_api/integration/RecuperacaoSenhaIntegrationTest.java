@@ -110,6 +110,7 @@ class RecuperacaoSenhaIntegrationTest {
                 "11987654321",
                 TipoPessoa.FISICA
         );
+        doador.setEmailVerificado(true);
         doador = doadorRepository.save(doador);
     }
 
