@@ -55,7 +55,7 @@ public class EmailService {
                           <tr>
                             <td style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:40px 48px;text-align:center;">
                               <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">
-                                🔐 Recuperação de Senha
+                                Recuperação de Senha
                               </h1>
                               <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;">DoaLink — Conectando quem doa com quem precisa</p>
                             </td>
@@ -64,7 +64,7 @@ public class EmailService {
                           <tr>
                             <td style="padding:48px 48px 32px;">
                               <p style="margin:0 0 16px;font-size:18px;color:#1e293b;font-weight:600;">
-                                Olá, %s! 👋
+                                Olá, %s! 
                               </p>
                               <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.6;">
                                 Recebemos uma solicitação para redefinir a senha da sua conta no DoaLink.
@@ -86,7 +86,7 @@ public class EmailService {
                               <!-- Warning -->
                               <div style="background-color:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
                                 <p style="margin:0;font-size:14px;color:#92400e;">
-                                  ⏱️ <strong>Este link expira em 10 minutos.</strong>
+                                  <strong>Este link expira em 10 minutos.</strong>
                                   Após esse prazo, você precisará solicitar um novo link de recuperação.
                                 </p>
                               </div>
