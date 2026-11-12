@@ -1,7 +1,7 @@
 # Spec 0001: Autenticação, Cadastro de Usuários e Gestão de Sessão
 
 - **Status:** Implementado
-- **Decisões:** [ADR 0004](../adr/0004-cadastro-por-perfil-em-endpoints-separados-sob-auth.md), [ADR 0005](../adr/0005-jwt-em-cookies-httponly-com-refresh-token-opaco-e-rotacao.md)
+- **Decisões:** [ADR 0004](../adr/0004-cadastro-por-perfil-em-endpoints-separados-sob-auth.md), [ADR 0005](../adr/0005-jwt-em-cookies-httponly-com-refresh-token-opaco-e-rotacao.md), [ADR 0009](../adr/0009-confirmacao-de-email-por-codigo-com-hash-e-validade-curta.md)
 
 ---
 

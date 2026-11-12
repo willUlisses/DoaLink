@@ -162,3 +162,7 @@ ADRs sugeridos para registrar as decisões já tomadas:
 | 0003 | Campo único `documento` normalizado + `tipoPessoa` |
 | 0004 | Cadastro por perfil em endpoints separados sob `/auth` |
 | 0005 | JWT em cookies HttpOnly com refresh token opaco no banco e rotação |
+| 0006 | Oferta de doação agrupa N itens com rastreio de status |
+| 0007 | Segregação de contratos OpenAPI em interfaces de controller |
+| 0008 | Recuperação de senha via token opaco hashado e envio SMTP |
+| 0009 | Confirmação de e-mail por código numérico de 6 dígitos com hash SHA-256 e janela estrita de 90 segundos |
