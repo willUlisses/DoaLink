@@ -205,11 +205,13 @@ class VerificacaoEmailIntegrationTest {
 
         // Verificar que o primeiro código foi revogado
         entityManager.clear();
-        List<CodigoVerificacaoEmail> todosCodigos = codigoRepository.findAll();
-        long revogados = todosCodigos.stream().filter(CodigoVerificacaoEmail::isRevogado).count();
-        long ativos = todosCodigos.stream().filter(c -> !c.isRevogado() && !c.isUtilizado()).count();
+        List<CodigoVerificacaoEmail> codigosDoUsuario = codigoRepository.findAll().stream()
+                .filter(c -> c.getUsuario().getId().equals(usuario.getId()))
+                .toList();
+        long revogados = codigosDoUsuario.stream().filter(CodigoVerificacaoEmail::isRevogado).count();
+        long ativos = codigosDoUsuario.stream().filter(c -> !c.isRevogado() && !c.isUtilizado()).count();
 
-        assertThat(revogados).isGreaterThanOrEqualTo(1);
+        assertThat(revogados).isEqualTo(1);
         assertThat(ativos).isEqualTo(1);
     }
 }

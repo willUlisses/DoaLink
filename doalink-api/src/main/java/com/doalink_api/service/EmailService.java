@@ -31,7 +31,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("E-mail de confirmação de cadastro enviado para {}", destinatario);
         } catch (Exception e) {
-            log.error("Falha ao enviar e-mail de confirmação para {}: {}", destinatario, e.getMessage());
+            log.error("Falha ao enviar e-mail de confirmação para {}: {}", destinatario, e.getMessage(), e);
         }
     }
 
