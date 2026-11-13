@@ -38,6 +38,22 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(EmailNaoVerificadoException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNaoVerificadoException(EmailNaoVerificadoException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.FORBIDDEN.value()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(CodigoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleCodigoInvalidoException(CodigoInvalidoException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(TokenInvalidoException.class)
     public ResponseEntity<ErrorResponse> handleTokenInvalidoException(TokenInvalidoException e) {
         return new ResponseEntity<>(

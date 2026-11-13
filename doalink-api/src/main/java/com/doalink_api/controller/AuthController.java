@@ -3,7 +3,10 @@ package com.doalink_api.controller;
 import com.doalink_api.dtos.request.CadastroComumRequest;
 import com.doalink_api.dtos.request.CadastroReceptorRequest;
 import com.doalink_api.dtos.request.LoginRequest;
+import com.doalink_api.dtos.request.ReenviarCodigoRequest;
+import com.doalink_api.dtos.request.VerificarEmailRequest;
 import com.doalink_api.dtos.response.AuthResponse;
+import com.doalink_api.dtos.response.MensagemResponse;
 import com.doalink_api.dtos.response.UsuarioResponse;
 import com.doalink_api.service.AuthService;
 import com.doalink_api.service.CookieService;
@@ -24,29 +27,39 @@ public class AuthController implements IAuthController {
 
     @Override
     public ResponseEntity<UsuarioResponse> cadastrarDoador(
-            @RequestBody @Valid CadastroComumRequest req,
-            HttpServletResponse res) {
-        AuthResponse auth = authService.cadastrarDoador(req);
-        cookieService.adicionarHeaders(res, auth.accessToken(), auth.refreshToken());
-        return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
+            @RequestBody @Valid CadastroComumRequest req) {
+        UsuarioResponse usuario = authService.cadastrarDoador(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
     }
 
     @Override
     public ResponseEntity<UsuarioResponse> cadastrarTransportador(
-            @RequestBody @Valid CadastroComumRequest req,
-            HttpServletResponse res) {
-        AuthResponse auth = authService.cadastrarTransportador(req);
-        cookieService.adicionarHeaders(res, auth.accessToken(), auth.refreshToken());
-        return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
+            @RequestBody @Valid CadastroComumRequest req) {
+        UsuarioResponse usuario = authService.cadastrarTransportador(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
     }
 
     @Override
     public ResponseEntity<UsuarioResponse> cadastrarReceptor(
-            @RequestBody @Valid CadastroReceptorRequest req,
+            @RequestBody @Valid CadastroReceptorRequest req) {
+        UsuarioResponse usuario = authService.cadastrarReceptor(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
+    }
+
+    @Override
+    public ResponseEntity<UsuarioResponse> verificarEmail(
+            @RequestBody @Valid VerificarEmailRequest req,
             HttpServletResponse res) {
-        AuthResponse auth = authService.cadastrarReceptor(req);
+        AuthResponse auth = authService.verificarEmail(req);
         cookieService.adicionarHeaders(res, auth.accessToken(), auth.refreshToken());
-        return ResponseEntity.status(HttpStatus.CREATED).body(auth.usuario());
+        return ResponseEntity.ok(auth.usuario());
+    }
+
+    @Override
+    public ResponseEntity<MensagemResponse> reenviarCodigo(
+            @RequestBody @Valid ReenviarCodigoRequest req) {
+        authService.reenviarCodigoVerificacao(req);
+        return ResponseEntity.ok(new MensagemResponse("Se o e-mail estiver cadastrado e pendente de verificação, um novo código foi enviado."));
     }
 
     @Override

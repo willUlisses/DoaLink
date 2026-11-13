@@ -4,6 +4,8 @@ import com.doalink_api.config.UsuarioDetails;
 import com.doalink_api.dtos.request.CadastroComumRequest;
 import com.doalink_api.dtos.request.CadastroReceptorRequest;
 import com.doalink_api.dtos.request.LoginRequest;
+import com.doalink_api.dtos.request.ReenviarCodigoRequest;
+import com.doalink_api.dtos.request.VerificarEmailRequest;
 import com.doalink_api.dtos.response.AuthResponse;
 import com.doalink_api.dtos.response.UsuarioResponse;
 import com.doalink_api.entities.Doador;
@@ -12,6 +14,7 @@ import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.Usuario;
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.exception.ConflictException;
+import com.doalink_api.exception.EmailNaoVerificadoException;
 import com.doalink_api.exception.TokenInvalidoException;
 import com.doalink_api.mapper.EnderecoMapper;
 import com.doalink_api.repository.UsuarioRepository;
@@ -35,19 +38,20 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final VerificacaoEmailService verificacaoEmailService;
 
     @Transactional
-    public AuthResponse cadastrarDoador(CadastroComumRequest req) {
+    public UsuarioResponse cadastrarDoador(CadastroComumRequest req) {
         return processarCadastroDoadorOuTransportador(new Doador(), req);
     }
 
     @Transactional
-    public AuthResponse cadastrarTransportador(CadastroComumRequest req) {
+    public UsuarioResponse cadastrarTransportador(CadastroComumRequest req) {
         return processarCadastroDoadorOuTransportador(new Transportador(), req);
     }
 
     @Transactional
-    public AuthResponse cadastrarReceptor(CadastroReceptorRequest req) {
+    public UsuarioResponse cadastrarReceptor(CadastroReceptorRequest req) {
         String documento = normalizarDocumento(req.cnpj());
         String email = req.email().trim().toLowerCase();
 
@@ -58,7 +62,9 @@ public class AuthService {
         receptor.setEnderecoOrganizacao(EnderecoMapper.toEndereco(req.endereco()));
         preencherComuns(receptor, req.nome(), req.senha(), TipoPessoa.JURIDICA, documento, email);
 
-        return autenticarEGerarTokens(usuarioRepository.save(receptor));
+        Usuario salvo = usuarioRepository.save(receptor);
+        verificacaoEmailService.enviarCodigo(salvo);
+        return UsuarioResponse.from(salvo);
     }
 
     @Transactional
@@ -67,13 +73,30 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(
                         req.email().trim().toLowerCase(), req.senha()));
         Usuario usuario = ((UsuarioDetails) Objects.requireNonNull(auth.getPrincipal())).getUsuario();
+        if (!usuario.isEmailVerificado()) {
+            throw new EmailNaoVerificadoException("E-mail não verificado. Confirme o código enviado para o seu e-mail antes de acessar a conta.");
+        }
         return autenticarEGerarTokens(usuario);
+    }
+
+    @Transactional
+    public AuthResponse verificarEmail(VerificarEmailRequest req) {
+        Usuario usuario = verificacaoEmailService.verificarCodigo(req.email(), req.codigo());
+        return autenticarEGerarTokens(usuario);
+    }
+
+    @Transactional
+    public void reenviarCodigoVerificacao(ReenviarCodigoRequest req) {
+        verificacaoEmailService.reenviarCodigo(req.email());
     }
 
     public AuthResponse refresh(String refreshToken) {
         if (refreshToken == null) throw new TokenInvalidoException("Refresh token nulo");
 
         RefreshTokenService.Rotacao r = refreshTokenService.rotacionar(refreshToken);
+        if (!r.usuario().isEmailVerificado()) {
+            throw new EmailNaoVerificadoException("E-mail não verificado. Confirme o código enviado para o seu e-mail antes de acessar a conta.");
+        }
         return new AuthResponse(UsuarioResponse.from(r.usuario()),
                 jwtService.gerarAccessToken(r.usuario()), r.novoRefreshToken());
     }
@@ -82,7 +105,7 @@ public class AuthService {
         if (refreshToken != null) refreshTokenService.revogar(refreshToken);
     }
 
-    private AuthResponse processarCadastroDoadorOuTransportador(Usuario usuario, CadastroComumRequest req) {
+    private UsuarioResponse processarCadastroDoadorOuTransportador(Usuario usuario, CadastroComumRequest req) {
         String documento = normalizarDocumento(req.getDocumentoPreenchido());
         String email = req.email().trim().toLowerCase();
 
@@ -90,7 +113,9 @@ public class AuthService {
         // TODO: se req for pessoa jurídica, chamar api do cnpj
 
         preencherComuns(usuario, req.nome(), req.senha(), req.getTipoPessoa(), documento, email);
-        return autenticarEGerarTokens(usuarioRepository.save(usuario));
+        Usuario salvo = usuarioRepository.save(usuario);
+        verificacaoEmailService.enviarCodigo(salvo);
+        return UsuarioResponse.from(salvo);
     }
 
     private AuthResponse autenticarEGerarTokens(Usuario u) {
