@@ -1,9 +1,13 @@
 package com.doalink_api.controller;
 
+import com.doalink_api.dtos.request.CadastroComumRequest;
 import com.doalink_api.dtos.request.LoginRequest;
+import com.doalink_api.dtos.request.ReenviarCodigoRequest;
+import com.doalink_api.dtos.request.VerificarEmailRequest;
 import com.doalink_api.dtos.response.AuthResponse;
 import com.doalink_api.dtos.response.UsuarioResponse;
 import com.doalink_api.entities.enums.TipoUsuario;
+import com.doalink_api.exception.EmailNaoVerificadoException;
 import com.doalink_api.exception.GlobalExceptionHandler;
 import com.doalink_api.service.AuthService;
 import com.doalink_api.service.CookieService;
@@ -67,6 +71,77 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.tipoUsuario").value("DOADOR"));
 
         verify(cookieService, times(1)).adicionarHeaders(any(), eq("access-token-jwt"), eq("refresh-token-opaque"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 403 Forbidden ao tentar login com e-mail não verificado")
+    void deveRetornar403QuandoEmailNaoVerificadoNoLogin() throws Exception {
+        LoginRequest req = new LoginRequest("usuario@teste.com", "senhaForte123");
+
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new EmailNaoVerificadoException("E-mail não verificado. Confirme o código enviado para o seu e-mail antes de acessar a conta."));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("E-mail não verificado. Confirme o código enviado para o seu e-mail antes de acessar a conta."));
+
+        verify(cookieService, never()).adicionarHeaders(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Deve cadastrar doador com sucesso retornando 201 Created sem cookies de sessão")
+    void deveCadastrarDoadorComSucessoSemCookies() throws Exception {
+        CadastroComumRequest req = new CadastroComumRequest("52998224725", null, "usuario@teste.com", "Usuário Teste", "senhaForte123");
+        UsuarioResponse userResp = new UsuarioResponse(1L, "Usuário Teste", "usuario@teste.com", TipoUsuario.DOADOR);
+
+        when(authService.cadastrarDoador(any(CadastroComumRequest.class))).thenReturn(userResp);
+
+        mockMvc.perform(post("/auth/doadores/cadastro")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.email").value("usuario@teste.com"));
+
+        verify(cookieService, never()).adicionarHeaders(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Deve verificar e-mail com sucesso e emitir cookies de autenticação")
+    void deveVerificarEmailComSucesso() throws Exception {
+        VerificarEmailRequest req = new VerificarEmailRequest("usuario@teste.com", "123456");
+        UsuarioResponse userResp = new UsuarioResponse(1L, "Usuário Teste", "usuario@teste.com", TipoUsuario.DOADOR);
+        AuthResponse authResp = new AuthResponse(userResp, "access-token-jwt", "refresh-token-opaque");
+
+        when(authService.verificarEmail(any(VerificarEmailRequest.class))).thenReturn(authResp);
+
+        mockMvc.perform(post("/auth/verificar-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.email").value("usuario@teste.com"));
+
+        verify(cookieService, times(1)).adicionarHeaders(any(), eq("access-token-jwt"), eq("refresh-token-opaque"));
+    }
+
+    @Test
+    @DisplayName("Deve reenviar código de confirmação com sucesso retornando 200 OK")
+    void deveReenviarCodigoComSucesso() throws Exception {
+        ReenviarCodigoRequest req = new ReenviarCodigoRequest("usuario@teste.com");
+
+        doNothing().when(authService).reenviarCodigoVerificacao(any(ReenviarCodigoRequest.class));
+
+        mockMvc.perform(post("/auth/reenviar-codigo")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensagem").value("Se o e-mail estiver cadastrado e pendente de verificação, um novo código foi enviado."));
+
+        verify(authService, times(1)).reenviarCodigoVerificacao(any(ReenviarCodigoRequest.class));
     }
 
     @Test

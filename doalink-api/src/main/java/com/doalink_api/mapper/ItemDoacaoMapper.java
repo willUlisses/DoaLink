@@ -8,10 +8,12 @@ public class ItemDoacaoMapper {
     private ItemDoacaoMapper() {}
 
     public static ItemDoacao toEntity(ItemDoacaoRequest req) {
-        return new ItemDoacao(
+        ItemDoacao item = new ItemDoacao(
                 req.descricao().trim(),
                 req.tipoItemDoacao(),
                 req.quantidade()
         );
+        item.setTipoUnidade(req.tipoUnidade());
+        return item;
     }
 }

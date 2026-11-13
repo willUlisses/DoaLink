@@ -7,6 +7,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -34,6 +35,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 ErrorResponse.from(e, HttpStatus.FORBIDDEN.value()),
                 HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(EmailNaoVerificadoException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNaoVerificadoException(EmailNaoVerificadoException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.FORBIDDEN.value()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(CodigoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleCodigoInvalidoException(CodigoInvalidoException e) {
+        return new ResponseEntity<>(
+                ErrorResponse.from(e, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
         );
     }
 
@@ -65,6 +82,15 @@ public class GlobalExceptionHandler {
         }
         return new ResponseEntity<>(
                 new ErrorResponse(errors, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        String msg = String.format("Parâmetro '%s' recebeu um valor inválido: '%s'", e.getName(), e.getValue());
+        return new ResponseEntity<>(
+                new ErrorResponse(msg, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST
         );
     }

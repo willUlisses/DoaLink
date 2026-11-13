@@ -106,7 +106,7 @@ O Transportador preenche apenas os dados comuns.
 |---|---|---|---|
 | \*E-mail de acesso | VARCHAR(254) | — | Deve corresponder a um e-mail cadastrado. |
 | \*Senha nova | hash | — | Mesmos critérios de RF-001. Nunca armazenada em texto puro. |
-| Token de recuperação | VARCHAR (hash) | — | Link de uso único enviado ao e-mail. Deve ter validade e ser invalidado após o uso. A validade é a definir. |
+| Token de recuperação | VARCHAR (hash) | — | Link de uso único enviado ao e-mail. Deve ter validade e ser invalidado após o uso. A validade é de 10 minutos após a solicitação. |
 
 **Critérios de aceite**
 
@@ -119,19 +119,20 @@ O Transportador preenche apenas os dados comuns.
 
 ---
 
-### RF-010 — Confirmação de e-mail por código (desejável)
+### RF-010 — Confirmação de e-mail por código
 
-**Descrição:** Após o cadastro, o sistema envia um código único ao e-mail do participante para confirmar a titularidade do endereço de e-mail. O participante informa o código para ativar a conta. Requisito desejável; não bloqueia o cadastro na versão atual.
+**Descrição:** Após o cadastro, o sistema gera e envia um código numérico único ao e-mail do participante para confirmar a titularidade do endereço. A confirmação de e-mail é obrigatória para ativação da conta: o login e as demais funcionalidades da aplicação (como ofertas de doações, necessidades, etc.) permanecem bloqueados enquanto o e-mail não for verificado. O código é armazenado como hash SHA-256 no banco e possui validade de 90 segundos.
 
 | Campo | Tipo sugerido | Máscara | Validação e observações |
 |---|---|---|---|
-| Código de confirmação | 6 dígitos numéricos | 000-000 | Enviado ao e-mail cadastrado. Uso único. Validade a definir. |
+| Código de confirmação | 6 dígitos numéricos | 000-000 | Enviado ao e-mail cadastrado. Uso único. Validade de 90 segundos. Armazenado como hash SHA-256. |
 
 **Critérios de aceite**
 
-- **CA-010-1:** Dado um cadastro recém-realizado, quando o sistema enviar o código de confirmação, então o e-mail cadastrado deve receber o código.
-- **CA-010-2:** Dado um código válido, quando o participante informá-lo, então o sistema marca a conta como confirmada.
-- **CA-010-3:** Dado um código inválido ou expirado, quando o participante informá-lo, então o sistema rejeita e permite reenvio.
+- **CA-010-1:** Dado um cadastro recém-realizado, quando o sistema persistir o usuário, então deve registrar a conta com e-mail não verificado e enviar um e-mail com layout HTML simples contendo o código de 6 dígitos numéricos com validade de 90 segundos.
+- **CA-010-2:** Dado um código válido e dentro da janela de 90 segundos, quando o participante informá-lo, então o sistema marca a conta como confirmada (`email_verificado = true`), invalida o código como utilizado e permite emissão de sessão.
+- **CA-010-3:** Dado um código inválido, revogado ou expirado (> 90s), quando o participante informá-lo, então o sistema rejeita a validação e permite o reenvio de um novo código.
+- **CA-010-4:** Dado um participante com e-mail não verificado, quando tentar efetuar login ou acessar rotas da plataforma, então o sistema bloqueia o acesso com erro de e-mail não verificado (HTTP 403 Forbidden).
 
 ---
 
@@ -141,6 +142,7 @@ O Transportador preenche apenas os dados comuns.
 - **RNF-02 (Segurança — sessão):** Sessão stateless com access token JWT (15 min) e refresh token opaco (7 dias), ambos em cookies `HttpOnly`, `SameSite=Strict`. O front-end nunca lê nem armazena tokens.
 - **RNF-03 (LGPD):** CPF, CNPJ, e-mail e endereço são dados pessoais coletados com finalidade de identificação única e operação do serviço. São visíveis apenas ao próprio participante e, parcialmente, a outros participantes nas situações descritas nas specs. Nenhum dado de documento (CPF/CNPJ) é exposto pela API de resposta pública.
 - **RNF-04 (Unicidade):** E-mail e documento (CPF ou CNPJ) são únicos no sistema, garantidos por constraint de banco e verificação antecipada no serviço com retorno 409 em conflito.
+- **RNF-05 (Segurança — códigos efêmeros):** Códigos de confirmação de e-mail e tokens de recuperação de senha são armazenados no banco de dados exclusivamente na forma de hash SHA-256.
 
 ---
 
@@ -148,8 +150,8 @@ O Transportador preenche apenas os dados comuns.
 
 | Item | Requisitos afetados | Situação |
 |---|---|---|
-| Validade do link de recuperação de senha | RF-003 | Em aberto |
-| Validade do código de confirmação de e-mail | RF-010 | Em aberto |
+| Validade do link de recuperação de senha | RF-003 | Resolvido: 10 minutos (ver Spec 0003 e ADR 0008) |
+| Validade do código de confirmação de e-mail | RF-010 | Resolvido: 90 segundos (ver Spec 0001) |
 | Múltiplos perfis por cadastro | RF-001 | Não suportado nesta versão — decisão futura pendente |
 | Número de identificação: forma de exibição ao participante | RF-001 | Em aberto |
 
@@ -157,7 +159,6 @@ O Transportador preenche apenas os dados comuns.
 
 ## Fora do escopo desta versão
 
-- Confirmação de e-mail no fluxo de cadastro (implementado como RF-010 desejável)
 - Login social (OAuth2, Google, Facebook)
 - Troca de perfil após o cadastro
 - Múltiplos perfis em um mesmo cadastro
@@ -166,6 +167,5 @@ O Transportador preenche apenas os dados comuns.
 
 ## Critérios de conclusão
 
-- RF-001, RF-002 e RF-003: todos os critérios de aceite cobertos por testes automatizados passando.
-- RF-010: implementado quando a decisão de validade do código for tomada e a integração de envio de e-mail estiver definida.
+- RF-001, RF-002, RF-003 e RF-010: todos os critérios de aceite cobertos por testes automatizados passando.
 

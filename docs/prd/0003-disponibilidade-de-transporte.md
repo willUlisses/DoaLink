@@ -37,7 +37,7 @@ O sistema **não faz**:
 | Campo | Tipo sugerido | Máscara | Validação e observações |
 |---|---|---|---|
 | \*Tipo de veículo ¹ | ENUM ou catálogo | — | Obrigatório. Categorias a definir. |
-| Capacidade ² | DECIMAL(12,3) | Conforme unidade | Deve ser maior que zero quando informada. Unidade e dimensão (peso, volume, quantidade) a definir. |
+| Capacidade ² | Double | Conforme unidade | Deve ser maior que zero quando informada. Unidade e dimensão (peso, volume, quantidade) a definir. |
 | \*Origem | Endereço estruturado | Conforme campos de endereço | Obrigatório. Local de início do transporte. Campos obrigatórios: CEP, estado (UF), cidade, bairro, logradouro. Número opcional (padrão `S/N`). Complemento opcional. |
 | \*Destino ³ | Endereço ou região | — | Obrigatório. Destino ou área atendida. Formato a definir. |
 | \*Data ⁴ | DATE ou TIMESTAMP WITH TIME ZONE | DD/MM/AAAA ou DD/MM/AAAA HH:mm | Obrigatória. Deve ser uma data futura. Precisão (somente data ou data e horário) a definir. |

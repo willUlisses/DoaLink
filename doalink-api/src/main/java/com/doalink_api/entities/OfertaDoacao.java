@@ -47,6 +47,7 @@ public class OfertaDoacao {
     }
 
     public void adicionarItem(ItemDoacao item) {
+        item.setNecessidade(null);
         item.setOferta(this);
         this.itens.add(item);
     }

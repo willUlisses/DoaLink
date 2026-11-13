@@ -50,10 +50,17 @@ public class SecurityConfig {
                                 "/auth/logout",
                                 "/auth/doadores/cadastro",
                                 "/auth/transportadores/cadastro",
-                                "/auth/receptores/cadastro").permitAll()
+                                "/auth/receptores/cadastro",
+                                "/auth/verificar-email",
+                                "/auth/reenviar-codigo",
+                                "/auth/recuperar-senha",
+                                "/auth/redefinir-senha").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth/recuperar-senha/validar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
                         .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.POST, "/necessidades").hasRole("RECEPTOR")
+                        .requestMatchers("/necessidades/minhas").hasRole("RECEPTOR")
                         .anyRequest().authenticated()
                 ).exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
