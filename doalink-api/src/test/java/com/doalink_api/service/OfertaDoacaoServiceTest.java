@@ -5,9 +5,13 @@ import com.doalink_api.dtos.request.ItemDoacaoRequest;
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
 import com.doalink_api.entities.Doador;
+import com.doalink_api.entities.DisponibilidadeTransporte;
 import com.doalink_api.entities.ItemDoacao;
 import com.doalink_api.entities.OfertaDoacao;
+import com.doalink_api.entities.ReservaEntrega;
+import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.enums.SituacaoOferta;
+import com.doalink_api.entities.enums.SituacaoReservaEntrega;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.entities.enums.TipoUnidade;
 import com.doalink_api.entities.enums.TipoPessoa;
@@ -15,6 +19,8 @@ import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
 import com.doalink_api.repository.DoadorRepository;
 import com.doalink_api.repository.OfertaDoacaoRepository;
+import com.doalink_api.repository.ReservaEntregaRepository;
+import com.doalink_api.repository.TransportadorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +44,10 @@ class OfertaDoacaoServiceTest {
     private OfertaDoacaoRepository ofertaRepository;
     @Mock
     private DoadorRepository doadorRepository;
+    @Mock
+    private TransportadorRepository transportadorRepository;
+    @Mock
+    private ReservaEntregaRepository reservaRepository;
     @InjectMocks
     private OfertaDoacaoService service;
 
@@ -142,20 +152,135 @@ class OfertaDoacaoServiceTest {
     void buscarPorId_deveLancarNotFound() {
         when(ofertaRepository.findWithItensById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.buscarPorId(999L))
+        assertThatThrownBy(() -> service.buscarPorId(999L, 1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("999");
     }
 
     @Test
-    @DisplayName("buscarPorId: deve retornar response quando oferta existe")
+    @DisplayName("buscarPorId: deve retornar endereço completo para o doador dono")
     void buscarPorId_deveRetornarQuandoExiste() {
         OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setLocalRetirada(com.doalink_api.mapper.EnderecoMapper.toEndereco(enderecoReq));
         when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(transportadorRepository.existsById(1L)).thenReturn(false);
 
-        OfertaDoacaoResponse resp = service.buscarPorId(10L);
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 1L);
 
         assertThat(resp.id()).isEqualTo(10L);
+        assertThat(resp.localRetirada().logradouro()).isEqualTo("Rua das Flores");
+        assertThat(resp.localRetirada().cep()).isEqualTo("01310100");
+    }
+
+    @Test
+    @DisplayName("buscarPorId: deve mascarar endereço exato para quem não é o doador dono nem vinculado na reserva")
+    void buscarPorId_deveMascararEnderecoParaNaoDono() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setLocalRetirada(com.doalink_api.mapper.EnderecoMapper.toEndereco(enderecoReq));
+        oferta.setSituacao(SituacaoOferta.RESERVADA);
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(transportadorRepository.existsById(2L)).thenReturn(true);
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.empty());
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 2L);
+
+        assertThat(resp.id()).isEqualTo(10L);
+        assertThat(resp.localRetirada().cidade()).isEqualTo("São Paulo");
+        assertThat(resp.localRetirada().estado()).isEqualTo("SP");
+        assertThat(resp.localRetirada().logradouro()).isNull();
+        assertThat(resp.localRetirada().numero()).isNull();
+        assertThat(resp.localRetirada().cep()).isNull();
+    }
+
+    @Test
+    @DisplayName("buscarPorId: deve liberar endereço completo para o transportador vinculado na reserva")
+    void buscarPorId_deveLiberarEnderecoParaTransportadorVinculado() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setLocalRetirada(com.doalink_api.mapper.EnderecoMapper.toEndereco(enderecoReq));
+        oferta.setSituacao(SituacaoOferta.RESERVADA);
+
+        Transportador transportador = new Transportador();
+        transportador.setId(2L);
+        DisponibilidadeTransporte disp = new DisponibilidadeTransporte();
+        disp.setTransportador(transportador);
+        ReservaEntrega reserva = new ReservaEntrega();
+        reserva.setDisponibilidade(disp);
+
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.of(reserva));
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 2L);
+
+        assertThat(resp.localRetirada().logradouro()).isEqualTo("Rua das Flores");
+        assertThat(resp.localRetirada().cep()).isEqualTo("01310100");
+    }
+
+    @Test
+    @DisplayName("buscarPorId: transportador pode visualizar oferta RESERVADA")
+    void buscarPorId_transportadorPodeVerReservada() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setSituacao(SituacaoOferta.RESERVADA);
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(transportadorRepository.existsById(2L)).thenReturn(true);
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 2L);
+
+        assertThat(resp.id()).isEqualTo(10L);
+        assertThat(resp.situacao()).isEqualTo(SituacaoOferta.RESERVADA);
+    }
+
+    @Test
+    @DisplayName("buscarPorId: transportador não pode visualizar oferta DISPONIVEL ou CANCELADA")
+    void buscarPorId_transportadorNaoPodeVerNaoReservada() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setSituacao(SituacaoOferta.DISPONIVEL);
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(transportadorRepository.existsById(2L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.buscarPorId(10L, 2L))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessageContaining("RESERVADA");
+    }
+
+    @Test
+    @DisplayName("buscarPorId: transportador vinculado continua visualizando oferta CONCLUIDA com endereço completo")
+    void buscarPorId_transportadorVinculadoPodeVerConcluida() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setLocalRetirada(com.doalink_api.mapper.EnderecoMapper.toEndereco(enderecoReq));
+        oferta.setSituacao(SituacaoOferta.CONCLUIDA);
+
+        Transportador transportador = new Transportador();
+        transportador.setId(2L);
+        DisponibilidadeTransporte disp = new DisponibilidadeTransporte();
+        disp.setTransportador(transportador);
+        ReservaEntrega reserva = new ReservaEntrega();
+        reserva.setDisponibilidade(disp);
+        reserva.setSituacao(SituacaoReservaEntrega.CONCLUIDA);
+
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.of(reserva));
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 2L);
+
+        assertThat(resp.situacao()).isEqualTo(SituacaoOferta.CONCLUIDA);
+        assertThat(resp.localRetirada().logradouro()).isEqualTo("Rua das Flores");
+    }
+
+    @Test
+    @DisplayName("buscarPorId: transportador não vinculado não pode visualizar oferta CONCLUIDA")
+    void buscarPorId_transportadorNaoVinculadoNaoPodeVerConcluida() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setSituacao(SituacaoOferta.CONCLUIDA);
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.empty());
+        when(transportadorRepository.existsById(2L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.buscarPorId(10L, 2L))
+                .isInstanceOf(ForbiddenException.class);
     }
 
     // -------------------------------------------------------------------------
