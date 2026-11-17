@@ -16,11 +16,21 @@ public record OfertaDoacaoResponse(
         LocalDateTime atualizadoEm
 ) {
     public static OfertaDoacaoResponse from(OfertaDoacao oferta) {
+        return from(oferta, true);
+    }
+
+    public static OfertaDoacaoResponse from(OfertaDoacao oferta, boolean incluirEnderecoCompleto) {
+        EnderecoResponse endereco = null;
+        if (oferta.getLocalRetirada() != null) {
+            endereco = incluirEnderecoCompleto
+                    ? EnderecoResponse.from(oferta.getLocalRetirada())
+                    : EnderecoResponse.resumido(oferta.getLocalRetirada());
+        }
         return new OfertaDoacaoResponse(
                 oferta.getId(),
                 oferta.getSituacao(),
                 oferta.getDoador() != null ? ContatoResponse.from(oferta.getDoador()) : null,
-                oferta.getLocalRetirada() != null ? EnderecoResponse.from(oferta.getLocalRetirada()) : null,
+                endereco,
                 oferta.getItens().stream().map(ItemDoacaoResponse::from).toList(),
                 oferta.getCriadoEm(),
                 oferta.getAtualizadoEm()

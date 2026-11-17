@@ -53,8 +53,10 @@ public class OfertaDoacaoController implements IOfertaDoacaoController {
     }
 
     @Override
-    public ResponseEntity<OfertaDoacaoResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(ofertaService.buscarPorId(id));
+    public ResponseEntity<OfertaDoacaoResponse> buscarPorId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(ofertaService.buscarPorId(id, usuario.id()));
     }
 
     @Override

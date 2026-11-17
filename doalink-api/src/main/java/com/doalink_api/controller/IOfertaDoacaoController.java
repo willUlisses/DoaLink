@@ -85,11 +85,13 @@ public interface IOfertaDoacaoController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = OfertaDoacaoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Transportador só pode visualizar ofertas RESERVADAS"),
             @ApiResponse(responseCode = "404", description = "Oferta não encontrada")
     })
     @GetMapping("/{id}")
     ResponseEntity<OfertaDoacaoResponse> buscarPorId(
-            @Parameter(description = "ID da oferta de doação") @PathVariable Long id);
+            @Parameter(description = "ID da oferta de doação") @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 
     @Operation(
             summary = "Cancelar oferta de doação",

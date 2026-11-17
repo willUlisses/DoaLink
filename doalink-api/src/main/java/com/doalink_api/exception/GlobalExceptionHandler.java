@@ -1,6 +1,9 @@
 package com.doalink_api.exception;
 
 import com.doalink_api.dtos.response.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,6 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -18,6 +22,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConflictException(ConflictException e) {
         return new ResponseEntity<>(
                 ErrorResponse.from(e, HttpStatus.CONFLICT.value()),
+                HttpStatus.CONFLICT
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String causa = e.getMostSpecificCause().getMessage();
+        log.warn("Violação de integridade: {}", causa);
+        String mensagem = "Conflito de integridade dos dados";
+        if (causa != null && causa.contains("uk_reserva_entrega_oferta_ativa")) {
+            mensagem = "Esta oferta já possui uma reserva ativa";
+        } else if (causa != null && causa.contains("uk_disponibilidade_transportador_data_ativa")) {
+            mensagem = "Já existe uma disponibilidade ativa para esta data";
+        }
+        return new ResponseEntity<>(
+                new ErrorResponse(mensagem, HttpStatus.CONFLICT.value()),
+                HttpStatus.CONFLICT
+        );
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(OptimisticLockingFailureException e) {
+        log.warn("Conflito de concorrência otimista: {}", e.getMessage());
+        return new ResponseEntity<>(
+                new ErrorResponse("O registro foi alterado por outra operação. Atualize e tente novamente.",
+                        HttpStatus.CONFLICT.value()),
                 HttpStatus.CONFLICT
         );
     }

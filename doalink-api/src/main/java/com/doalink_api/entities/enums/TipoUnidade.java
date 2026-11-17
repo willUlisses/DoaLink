@@ -12,7 +12,7 @@ public enum TipoUnidade {
     ML("MiliLitros"),
     G("Gramas");
 
-   private final String Descrisao;
+    private final String Descrisao;
 
     TipoUnidade(String descrisao) {
         Descrisao = descrisao;
