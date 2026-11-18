@@ -2,7 +2,7 @@
 
 - **Status:** Proposto
 - **Data:** 2026-11-09
-- **Especificações:** _(a criar — Spec 0006 para RF-008 e Spec 0007 para RF-009)_
+- **Especificações:** [Spec 0005](../specs/0005-campanha-emergencial.md) para RF-008 e _(Spec 0007 para RF-009 a criar)_
 
 ---
 
@@ -32,21 +32,20 @@ O sistema **não faz**:
 
 ### RF-008 — Campanha ou evento emergencial
 
-**Descrição:** O sistema permite o registro de campanhas ou eventos de desastre com região afetada e necessidades emergenciais. A campanha agrupa necessidades e amplifica a visibilidade para Doadores e Transportadores. Usuários autorizados podem registrar e gerenciar campanhas.
+**Descrição:** O sistema permite o registro e gerenciamento de campanhas ou eventos de emergência por Receptores (ONGs), com endereço de recebimento de doações, descrição contextual sobre a causa e necessidades emergenciais vinculadas. A campanha agrupa necessidades e amplifica a visibilidade para Doadores e Transportadores.
 
 | Campo | Tipo sugerido | Máscara | Validação e observações |
 |---|---|---|---|
-| \*Nome ou identificação da campanha | VARCHAR(150) | — | Obrigatório. ¹ |
-| \*Região afetada ² | Endereço, município, estado ou área geográfica | Conforme campos de endereço | Obrigatório. Formato a definir. |
-| Necessidades emergenciais | Lista de itens e quantidades | Segue os tipos de RF-006 | Opcional. Cada necessidade segue as mesmas regras de RF-006. |
-
-¹ O campo de nome não estava detalhado no requisito original do PDF — confirmado como necessário.
-² O formato da região afetada está a definir: texto livre, lista de municípios/estados, delimitação geográfica.
+| \*Nome ou identificação da campanha | VARCHAR(150) | — | Obrigatório. Máximo de 150 caracteres. |
+| Descrição da causa | VARCHAR(1000) | — | Opcional. Permite à ONG contextualizar a causa e detalhar a situação emergencial. Máximo de 1000 caracteres. |
+| \*Endereço de recebimento de doações | Endereço completo | Conforme campos de endereço | Obrigatório. Local onde as doações físicas devem ser entregues. |
+| Necessidades emergenciais | Lista de itens e quantidades | Segue os tipos de RF-006 | Opcional. Cada necessidade segue as mesmas regras de RF-006 (categoria, unidade e quantidade). |
 
 **Critérios de aceite**
 
-- **CA-008-1:** Dado um usuário autorizado com dados de campanha válidos, quando registrar a campanha, então o sistema cria a campanha com região afetada e necessidades informadas.
-- **CA-008-2:** Dado uma campanha ativa, quando participantes consultarem necessidades ou receberem sugestões de compatibilidade (RF-007), então a campanha e suas necessidades vinculadas são consideradas conforme as regras de visibilidade.
+- **CA-008-1:** Dado um usuário autenticado com perfil Receptor (ONG) com dados válidos, quando registrar a campanha, então o sistema cria a campanha com situação ATIVA, endereço de recebimento, descrição textual e necessidades informadas.
+- **CA-008-2:** Dado um usuário com perfil Doador, Transportador ou não autenticado, quando tentar criar ou editar uma campanha, então o sistema rejeita a operação com status de acesso negado.
+- **CA-008-3:** Dado uma campanha ativa, quando participantes consultarem necessidades ou receberem sugestões de compatibilidade (RF-007), então a campanha e suas necessidades vinculadas são consideradas conforme as regras de visibilidade.
 
 ---
 
@@ -76,14 +75,17 @@ O sistema **não faz**:
 
 ---
 
-## Decisões pendentes
+## Decisões resolvidas (RF-008)
 
-| Item | Requisitos afetados | Situação |
+| Item | Requisitos afetados | Decisão |
 |---|---|---|
-| Perfil autorizado a criar campanhas (Receptor, Administrador ou ambos) | RF-008 | Em aberto |
-| Formato da região afetada (texto, municípios, UF, coordenadas) | RF-008 | Em aberto |
-| Regras de visibilidade das campanhas (pública ou restrita por perfil) | RF-008 | Em aberto |
-| Encerramento de campanhas: manual ou por prazo | RF-008 | Em aberto |
+| Perfil autorizado a criar/editar campanhas | RF-008 | Restrito exclusivamente a Receptores (ONGs) |
+| Localização da campanha | RF-008 | Endereço onde as doações são recebidas (objeto de endereço estruturado) |
+| Contextualização da causa | RF-008 | Campo de texto livre de até 1000 caracteres |
+
+---
+
+## Decisões pendentes
 | Perfis autorizados a atualizar a situação da doação | RF-009 | Em aberto |
 | Necessidade de registrar o responsável pela atualização | RF-009 | Em aberto |
 | Transições válidas entre estados de situação da doação | RF-009 | Em aberto |
