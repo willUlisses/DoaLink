@@ -2,14 +2,20 @@ package com.doalink_api.service;
 
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
+import com.doalink_api.entities.DisponibilidadeTransporte;
 import com.doalink_api.entities.OfertaDoacao;
+import com.doalink_api.entities.ReservaEntrega;
+import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.enums.SituacaoOferta;
+import com.doalink_api.entities.enums.SituacaoReservaEntrega;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
 import com.doalink_api.mapper.OfertaDoacaoMapper;
 import com.doalink_api.repository.DoadorRepository;
 import com.doalink_api.repository.OfertaDoacaoRepository;
+import com.doalink_api.repository.ReservaEntregaRepository;
+import com.doalink_api.repository.TransportadorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +32,8 @@ public class OfertaDoacaoService {
 
     private final OfertaDoacaoRepository ofertaRepository;
     private final DoadorRepository doadorRepository;
+    private final TransportadorRepository transportadorRepository;
+    private final ReservaEntregaRepository reservaRepository;
 
     // -------------------------------------------------------------------------
     // Criar oferta
@@ -62,14 +71,14 @@ public class OfertaDoacaoService {
         // Quando nenhum filtro é informado busca todas as DISPONIVEL
         if (categoria == null && cidade == null && estado == null) {
             return ofertaRepository.findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
-                    .map(OfertaDoacaoResponse::from);
+                    .map(o -> OfertaDoacaoResponse.from(o, false));
         }
 
         // Com filtros aplica predicados em memória sobre a página e reconstrói PageImpl.
         // Nota: total pode divergir do count real — queries JPA especializadas são a evolução futura.
         Page<OfertaDoacaoResponse> pagina = ofertaRepository
                 .findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
-                .map(OfertaDoacaoResponse::from);
+                .map(o -> OfertaDoacaoResponse.from(o, false));
 
         List<OfertaDoacaoResponse> filtrados = pagina.getContent().stream()
                 .filter(r -> matchesFiltros(r, categoria, cidade, estado))
@@ -82,10 +91,35 @@ public class OfertaDoacaoService {
     // Buscar por id
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
-    public OfertaDoacaoResponse buscarPorId(Long id) {
-        return ofertaRepository.findWithItensById(id)
-                .map(OfertaDoacaoResponse::from)
+    public OfertaDoacaoResponse buscarPorId(Long id, Long usuarioId) {
+        OfertaDoacao oferta = ofertaRepository.findWithItensById(id)
                 .orElseThrow(() -> new NotFoundException("Oferta não encontrada: " + id));
+
+        boolean isDono = oferta.getDoador() != null && oferta.getDoador().getId().equals(usuarioId);
+
+        Optional<ReservaEntrega> reservaAtiva = isDono
+                ? Optional.empty()
+                : reservaRepository.findFirstByOfertaIdAndSituacaoNot(id, SituacaoReservaEntrega.CANCELADA);
+
+        boolean isReceptorDaReserva = reservaAtiva
+                .map(r -> r.getReceptor() != null && r.getReceptor().getId().equals(usuarioId))
+                .orElse(false);
+
+        boolean isTransportadorVinculado = reservaAtiva
+                .map(ReservaEntrega::getDisponibilidade)
+                .map(DisponibilidadeTransporte::getTransportador)
+                .map(Transportador::getId)
+                .map(tid -> tid.equals(usuarioId))
+                .orElse(false);
+
+        if (!isTransportadorVinculado
+                && transportadorRepository.existsById(usuarioId)
+                && oferta.getSituacao() != SituacaoOferta.RESERVADA) {
+            throw new ForbiddenException(
+                    "Transportadores só podem visualizar ofertas RESERVADAS ou vinculadas a eles");
+        }
+
+        return OfertaDoacaoResponse.from(oferta, isDono || isReceptorDaReserva || isTransportadorVinculado);
     }
 
     // -------------------------------------------------------------------------

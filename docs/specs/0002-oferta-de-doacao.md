@@ -90,8 +90,8 @@ O `Receptor` mantém seu próprio endereço obrigatório (`enderecoOrganizacao`)
 |---|---|---|
 | `criar(Long usuarioId, OfertaDoacaoRequest)` | Carrega o `Doador` pelo id do principal; mapeia endereço e itens; salva com `situacao = DISPONIVEL`; retorna `OfertaDoacaoResponse`. `@Transactional`. | `ForbiddenException` se id não corresponder a um `Doador` |
 | `listarMinhas(Long usuarioId)` | Retorna todas as ofertas do doador, ordenadas por `criadoEm DESC`. `@Transactional(readOnly=true)`. | — |
-| `listarDisponiveis(Pageable, TipoItemDoacao, String cidade, String estado)` | Retorna página de ofertas com `situacao = DISPONIVEL`; aplica filtros opcionais (categoria, cidade, UF) em memória sobre a página. `@Transactional(readOnly=true)`. | — |
-| `buscarPorId(Long id)` | Busca oferta com `@EntityGraph` para evitar N+1. `@Transactional(readOnly=true)`. | `NotFoundException` se não encontrada |
+| `listarDisponiveis(Pageable, TipoItemDoacao, String cidade, String estado)` | Retorna página de ofertas com `situacao = DISPONIVEL` e endereço resumido (apenas `cidade` e `estado`); aplica filtros opcionais (categoria, cidade, UF) em memória sobre a página. `@Transactional(readOnly=true)`. | — |
+| `buscarPorId(Long id, Long usuarioId)` | Busca oferta com `@EntityGraph` para evitar N+1; se o usuário for `Transportador` não vinculado à reserva ativa, permite apenas situação `RESERVADA`. Endereço completo é retornado ao doador dono, ao receptor da reserva ativa e ao transportador vinculado (demais usuários recebem apenas `cidade` e `estado`). `@Transactional(readOnly=true)`. | `NotFoundException` se não encontrada, `ForbiddenException` se transportador não vinculado tentar acessar oferta diferente de `RESERVADA` |
 | `cancelar(Long usuarioId, Long ofertaId)` | Verifica se o doador é dono (403) e se `situacao == DISPONIVEL` (403); muda para `CANCELADA`. `@Transactional`. | `NotFoundException`, `ForbiddenException` |
 
 ---
@@ -124,7 +124,7 @@ Base: `/ofertas`
 | POST | `/ofertas` | `OfertaDoacaoRequest` | `OfertaDoacaoResponse` + `Location` | 201 | 400 validação, 403 não é doador | `ROLE_DOADOR` |
 | GET | `/ofertas/minhas` | — | `List<OfertaDoacaoResponse>` | 200 | — | `ROLE_DOADOR` |
 | GET | `/ofertas` | `?categoria`, `?cidade`, `?estado`, paginação | `Page<OfertaDoacaoResponse>` | 200 | — | Autenticado |
-| GET | `/ofertas/{id}` | — | `OfertaDoacaoResponse` | 200 | 404 | Autenticado |
+| GET | `/ofertas/{id}` | — | `OfertaDoacaoResponse` | 200 | 403 transportador em oferta não `RESERVADA`, 404 | Autenticado |
 | PATCH | `/ofertas/{id}/cancelar` | — | — | 204 | 403 não é dono ou situação inválida, 404 | `ROLE_DOADOR` |
 
 ---

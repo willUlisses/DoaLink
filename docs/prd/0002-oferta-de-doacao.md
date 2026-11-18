@@ -63,12 +63,13 @@ O sistema **não faz**:
 - **CA-004-6:** Dado um Doador que não é o dono da oferta, quando tentar cancelar, então o sistema recusa com erro de autorização.
 - **CA-004-7:** Dado uma oferta com situação diferente de `DISPONIVEL`, quando o Doador dono tentar cancelar, então o sistema recusa com erro de autorização.
 - **CA-004-8:** Dado uma oferta criada pelo Doador, quando o Doador consultar suas próprias ofertas, então a oferta aparece na listagem pessoal, independentemente da situação.
+- **CA-004-9:** Dado uma oferta com situação diferente de `RESERVADA` e não vinculada a ele, quando um Transportador tentar consultá-la por ID, então o sistema recusa com erro de autorização.
 
 ---
 
 ## Requisitos não funcionais
 
-- **RNF-01 (LGPD):** A API de resposta de ofertas públicas expõe apenas nome, e-mail e telefone do Doador (nunca CPF/CNPJ). O documento do Doador não é exposto em nenhum endpoint de consulta de ofertas.
+- **RNF-01 (LGPD):** A API de resposta de ofertas públicas expõe apenas nome, e-mail e telefone do Doador (nunca CPF/CNPJ). O documento do Doador não é exposto em nenhum endpoint de consulta de ofertas. Na listagem pública e na consulta por ID por terceiros, o endereço de retirada exibe apenas cidade e estado (UF), ocultando logradouro, número, complemento, bairro e CEP até que haja vínculo de reserva com o transportador.
 - **RNF-02 (Desempenho):** A listagem pública de ofertas disponíveis deve suportar paginação. Filtros por categoria, cidade e estado são aplicáveis.
 - **RNF-03 (Integridade):** A situação da oferta segue o fluxo de estados `DISPONIVEL → RESERVADA → CONCLUIDA / CANCELADA`. Transições inválidas são rejeitadas.
 

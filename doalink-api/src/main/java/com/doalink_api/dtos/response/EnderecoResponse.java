@@ -25,5 +25,20 @@ public record EnderecoResponse(
                 endereco.getCep()
         );
     }
+
+    public static EnderecoResponse resumido(Endereco endereco) {
+        if (endereco == null) {
+            return null;
+        }
+        return new EnderecoResponse(
+                null,
+                null,
+                null,
+                null,
+                endereco.getCidade(),
+                endereco.getEstado(),
+                null
+        );
+    }
 }
 
