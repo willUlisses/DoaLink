@@ -59,6 +59,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
                         .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.POST, "/campanhas").hasRole("RECEPTOR")
+                        .requestMatchers("/campanhas/minhas").hasRole("RECEPTOR")
                         .requestMatchers(HttpMethod.POST, "/necessidades").hasRole("RECEPTOR")
                         .requestMatchers("/necessidades/minhas").hasRole("RECEPTOR")
                         .anyRequest().authenticated()
