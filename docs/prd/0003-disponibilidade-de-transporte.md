@@ -3,7 +3,7 @@
 - **Status:** Proposto
 - **Data:** 2026-11-16
 - **Especificações:** [Spec 0005 — Disponibilidade de Transporte](../specs/0005-disponibilidade-de-transporte.md)
-- **ADRs relacionados:** [ADR 0009 — Modelo de dados para disponibilidade de transporte](../adr/0009-modelo-de-dados-disponibilidade-de-transporte.md)
+- **ADRs relacionados:** [ADR 0009 — Modelo de dados para disponibilidade de transporte](../adr/0011-modelo-de-dados-disponibilidade-de-transporte.md)
 
 ---
 
@@ -47,7 +47,7 @@ O sistema **não faz** nesta versão:
 | Horário disponível | TIME | HH:mm | Opcional. Informado quando o transportador tiver janela de horário específica. |
 | Situação | ENUM | — | Gerenciada pelo sistema: `DISPONIVEL`, `RESERVADA`, `CONCLUIDA`, `CANCELADA`. Valor inicial: `DISPONIVEL`. |
 
-¹ Categorias de veículo aceitas (conforme [ADR 0009](../adr/0009-modelo-de-dados-disponibilidade-de-transporte.md)):
+¹ Categorias de veículo aceitas (conforme [ADR 0009](../adr/0011-modelo-de-dados-disponibilidade-de-transporte.md)):
 - `MOTO` — Moto
 - `CARRO_PASSEIO` — Carro de passeio
 - `UTILITARIO_LEVE` — Utilitário leve (furgão/van)

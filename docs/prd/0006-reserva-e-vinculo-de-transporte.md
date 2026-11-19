@@ -3,7 +3,7 @@
 - **Status:** Proposto
 - **Data:** 2026-11-17
 - **Especificações:** [Spec 0006 — Reserva de Oferta e Vínculo de Transporte](../specs/0006-reserva-e-vinculo-de-transporte.md)
-- **ADRs relacionados:** [ADR 0010 — Vínculo entre oferta, receptor e transporte via entidade de reserva](../adr/0010-vinculo-entre-oferta-receptor-e-transporte.md)
+- **ADRs relacionados:** [ADR 0010 — Vínculo entre oferta, receptor e transporte via entidade de reserva](../adr/0012-vinculo-entre-oferta-receptor-e-transporte.md)
 
 ---
 

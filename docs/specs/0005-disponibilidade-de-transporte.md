@@ -2,7 +2,7 @@
 
 - **Status:** Proposto
 - **Requisitos:** RF-005, CA-005-1 a CA-005-7, RNF-01, RNF-02 do [PRD 0003](../prd/0003-disponibilidade-de-transporte.md)
-- **Decisões:** [ADR 0009](../adr/0009-modelo-de-dados-disponibilidade-de-transporte.md)
+- **Decisões:** [ADR 0009](../adr/0011-modelo-de-dados-disponibilidade-de-transporte.md)
 - **Depende de:** [Spec 0001](0001-autenticacao-e-cadastro.md)
 
 ---
