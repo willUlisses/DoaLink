@@ -2,11 +2,11 @@ package com.doalink_api.service;
 
 
 import com.doalink_api.config.UsuarioDetails;
-import com.doalink_api.exception.UsernameNotFoundException;
 import com.doalink_api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
