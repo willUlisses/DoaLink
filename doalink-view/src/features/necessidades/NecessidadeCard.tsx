@@ -41,7 +41,9 @@ export function NecessidadeCard({
         <div className="space-y-1.5 text-sm">
           <div className="flex items-center gap-2 text-ink">
             <Building2 className="h-4 w-4 shrink-0 text-receptor-aa" aria-hidden="true" />
-            <span className="font-medium truncate">{necessidade.receptor.nome}</span>
+            <span className="font-medium truncate" title={necessidade.receptor.nome}>
+              {necessidade.receptor.nome}
+            </span>
           </div>
 
           <div className="flex items-start gap-2 text-ink-secondary">
@@ -64,24 +66,29 @@ export function NecessidadeCard({
             </span>
           </p>
           <ul className="space-y-1.5">
-            {necessidade.itens.slice(0, 3).map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-2 rounded-[8px] bg-canvas px-2.5 py-1.5 text-xs"
-              >
-                <span className="min-w-0 truncate text-ink">
-                  <span className="font-medium">
-                    {LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]}
+            {necessidade.itens.slice(0, 3).map((item) => {
+              const itemTexto = `${LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]}${
+                item.descricao ? ` — ${item.descricao}` : ''
+              }`
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-2 rounded-button bg-canvas px-2.5 py-1.5 text-xs"
+                >
+                  <span className="min-w-0 truncate text-ink" title={itemTexto}>
+                    <span className="font-medium">
+                      {LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]}
+                    </span>
+                    {item.descricao ? (
+                      <span className="ml-1.5 text-ink-secondary">— {item.descricao}</span>
+                    ) : null}
                   </span>
-                  {item.descricao ? (
-                    <span className="ml-1.5 text-ink-secondary">— {item.descricao}</span>
-                  ) : null}
-                </span>
-                <Badge tone="neutral" className="shrink-0">
-                  {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
-                </Badge>
-              </li>
-            ))}
+                  <Badge tone="neutral" className="shrink-0">
+                    {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
+                  </Badge>
+                </li>
+              )
+            })}
           </ul>
           {necessidade.itens.length > 3 ? (
             <p className="mt-1.5 text-xs font-medium text-ink-secondary">

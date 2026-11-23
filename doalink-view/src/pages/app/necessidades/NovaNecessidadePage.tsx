@@ -12,6 +12,7 @@ import { Input } from '../../../components/ui/Input.tsx'
 import { Select } from '../../../components/ui/Select.tsx'
 import { Textarea } from '../../../components/ui/Textarea.tsx'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
+import { useReceptorAddressPrefill } from '../../../hooks/useReceptorAddressPrefill.ts'
 import { useToast } from '../../../hooks/useToast.ts'
 import {
   criarNecessidadeSchema,
@@ -20,7 +21,11 @@ import {
 import { criarNecessidade } from '../../../services/necessidades.service.ts'
 import { TIPO_ITEM_DOACAO, TIPO_UNIDADE } from '../../../types/enums.ts'
 import { applyApiErrorsToForm } from '../../../utils/formErrors.ts'
-import { LABELS_CATEGORIA_ITEM, LABELS_UNIDADE } from '../../../utils/labels.ts'
+import {
+  LABELS_CATEGORIA_ITEM,
+  LABELS_SITUACAO_NECESSIDADE,
+  LABELS_UNIDADE,
+} from '../../../utils/labels.ts'
 import { limparDigitos } from '../../../utils/validators.ts'
 
 const CATEGORIA_OPTIONS = Object.values(TIPO_ITEM_DOACAO).map((c) => ({
@@ -43,6 +48,7 @@ export function NovaNecessidadePage() {
     register,
     control,
     handleSubmit,
+    getValues,
     setValue,
     setError,
     setFocus,
@@ -75,6 +81,8 @@ export function NovaNecessidadePage() {
     name: 'itens',
   })
 
+  useReceptorAddressPrefill('localEntrega', setValue, getValues)
+
   const onSubmit = async (values: CriarNecessidadeFormValues) => {
     setFormError(null)
     try {
@@ -99,7 +107,7 @@ export function NovaNecessidadePage() {
       showToast({
         variant: 'success',
         title: `Necessidade #${criada.id} registrada`,
-        description: 'A necessidade foi publicada com situação ABERTA.',
+        description: `A necessidade foi publicada com situação "${LABELS_SITUACAO_NECESSIDADE.ABERTA}".`,
       })
       navigate('/app/minhas-necessidades')
     } catch (error) {
@@ -153,7 +161,7 @@ export function NovaNecessidadePage() {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="rounded-[12px] border border-border bg-canvas p-4 space-y-3"
+                className="rounded-card border border-border bg-canvas p-4 space-y-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wide text-ink-secondary">

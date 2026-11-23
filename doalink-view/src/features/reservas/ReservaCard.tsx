@@ -11,6 +11,7 @@ import {
   formatarQuantidade,
 } from '../../utils/formatters.ts'
 import { LABELS_CATEGORIA_ITEM, SIGLAS_UNIDADE } from '../../utils/labels.ts'
+import { formatarTelefone } from '../../utils/masks.ts'
 
 interface ReservaCardProps {
   reserva: ReservaEntregaResponse
@@ -48,7 +49,7 @@ export function ReservaCard({
           <StatusBadge situacao={reserva.situacao} />
         </div>
 
-        <div className="grid grid-cols-1 gap-2 rounded-[10px] bg-canvas p-3 text-xs sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 rounded-button bg-canvas p-3 text-xs sm:grid-cols-2">
           <div>
             <p className="font-semibold text-ink-secondary">Retirada (Doador)</p>
             <p className="mt-0.5 flex items-start gap-1.5 text-ink">
@@ -59,7 +60,11 @@ export function ReservaCard({
               <p className="mt-1 flex items-center gap-1.5 text-ink-secondary">
                 <User className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>
-                  {reserva.doador.nome} ({reserva.doador.email})
+                  {reserva.doador.nome} ({reserva.doador.email}
+                  {reserva.doador.telefone
+                    ? ` • ${formatarTelefone(reserva.doador.telefone)}`
+                    : ''}
+                  )
                 </span>
               </p>
             ) : null}
@@ -75,15 +80,26 @@ export function ReservaCard({
               <p className="mt-1 flex items-center gap-1.5 text-ink-secondary">
                 <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>
-                  {reserva.receptor.nome} ({reserva.receptor.email})
+                  {reserva.receptor.nome} ({reserva.receptor.email}
+                  {reserva.receptor.telefone
+                    ? ` • ${formatarTelefone(reserva.receptor.telefone)}`
+                    : ''}
+                  )
                 </span>
               </p>
             ) : null}
           </div>
         </div>
 
+        {!reserva.enderecoRetirada && reserva.situacao === 'AGUARDANDO_RETIRADA' ? (
+          <p className="rounded-button border border-info-border bg-info-soft px-3 py-2 text-xs text-ink-secondary">
+            Oferta sem endereço cadastrado — entre em contato com o doador para combinar a retirada
+            ou entrega.
+          </p>
+        ) : null}
+
         {reserva.transportador ? (
-          <div className="flex items-center gap-2 rounded-[8px] border border-transportador-border bg-transportador-soft px-3 py-2 text-xs text-transportador-aa">
+          <div className="flex items-center gap-2 rounded-button border border-transportador-border bg-transportador-soft px-3 py-2 text-xs text-transportador-aa">
             <Truck className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
               Transportador vinculado: <strong>{reserva.transportador.nome}</strong>
@@ -109,22 +125,25 @@ export function ReservaCard({
             </span>
           </p>
           <ul className="space-y-1.5">
-            {reserva.itens.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-2 rounded-[8px] bg-canvas px-2.5 py-1.5 text-xs"
-              >
-                <span className="min-w-0 truncate text-ink">
-                  <span className="font-medium">{item.descricao}</span>
-                  <span className="ml-1.5 text-ink-muted">
-                    ({LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]})
+            {reserva.itens.map((item) => {
+              const itemTexto = `${item.descricao} (${LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]})`
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-2 rounded-button bg-canvas px-2.5 py-1.5 text-xs"
+                >
+                  <span className="min-w-0 truncate text-ink" title={itemTexto}>
+                    <span className="font-medium">{item.descricao}</span>
+                    <span className="ml-1.5 text-ink-muted">
+                      ({LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]})
+                    </span>
                   </span>
-                </span>
-                <Badge tone="neutral" className="shrink-0">
-                  {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
-                </Badge>
-              </li>
-            ))}
+                  <Badge tone="neutral" className="shrink-0">
+                    {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
+                  </Badge>
+                </li>
+              )
+            })}
           </ul>
         </div>
 

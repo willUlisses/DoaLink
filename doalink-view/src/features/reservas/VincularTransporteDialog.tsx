@@ -17,7 +17,7 @@ import {
   formatarQuantidade,
   obterDataLocalHojeISO,
 } from '../../utils/formatters.ts'
-import { LABELS_VEICULO, SIGLAS_UNIDADE } from '../../utils/labels.ts'
+import { LABELS_UNIDADE, LABELS_VEICULO, SIGLAS_UNIDADE } from '../../utils/labels.ts'
 
 interface VincularTransporteDialogProps {
   open: boolean
@@ -139,7 +139,7 @@ export function VincularTransporteDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="w-full max-w-lg rounded-[12px] border border-border bg-surface p-6 shadow-[var(--shadow-elevated)]"
+        className="w-full max-w-lg rounded-card border border-border bg-surface p-6 shadow-[var(--shadow-elevated)]"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-lg font-bold text-ink">
@@ -150,7 +150,7 @@ export function VincularTransporteDialog({
             disabled={loading}
             onClick={onClose}
             aria-label="Fechar diálogo"
-            className="rounded-[8px] p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
+            className="rounded-button p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -168,8 +168,10 @@ export function VincularTransporteDialog({
         {unidadesReserva.length > 1 ? (
           <div className="mt-4">
             <InfoBanner tone="warning" title="Unidades incompatíveis na reserva">
-              Esta reserva possui itens em unidades diferentes ({unidadesReserva.join(', ')}). A
-              API exige que todos os itens possuam a mesma unidade da disponibilidade selecionada.
+              Esta reserva possui itens cadastrados com unidades de medida diferentes (
+              {unidadesReserva.map((u) => LABELS_UNIDADE[u]).join(', ')}). Para vincular o
+              transporte, todos os itens da reserva precisam utilizar a mesma unidade de medida da
+              disponibilidade selecionada.
             </InfoBanner>
           </div>
         ) : null}
@@ -190,12 +192,9 @@ export function VincularTransporteDialog({
               <Button variant="secondary" onClick={onClose}>
                 Fechar
               </Button>
-              <Link
-                to="/app/disponibilidades"
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-transportador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-transportador-hover"
-              >
-                Cadastrar disponibilidade
-              </Link>
+              <Button asChild variant="transportador">
+                <Link to="/app/disponibilidades">Cadastrar disponibilidade</Link>
+              </Button>
             </div>
           </div>
         ) : (

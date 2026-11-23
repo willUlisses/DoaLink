@@ -7,6 +7,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '../components/ui/Button.tsx'
 import { Card } from '../components/ui/Card.tsx'
 import { useAuth } from '../hooks/useAuth.ts'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.ts'
@@ -17,7 +18,7 @@ const PERFIS = [
     titulo: 'Doador',
     corBarra: 'border-t-4 border-t-doador',
     corIcone: 'bg-doador-soft text-doador-aa',
-    corBotao: 'bg-doador-aa hover:bg-doador-hover text-white',
+    variant: 'doador' as const,
     Icon: HeartHandshake,
     descricao:
       'Publique ofertas com múltiplos itens, acompanhe reservas em andamento e contribua com campanhas emergenciais.',
@@ -34,7 +35,7 @@ const PERFIS = [
     titulo: 'Receptor (ONG)',
     corBarra: 'border-t-4 border-t-receptor',
     corIcone: 'bg-receptor-soft text-receptor-aa',
-    corBotao: 'bg-receptor-aa hover:bg-receptor-hover text-white',
+    variant: 'receptor' as const,
     Icon: Building2,
     descricao:
       'Reserve ofertas disponíveis, publique necessidades da sua instituição e organize campanhas emergenciais.',
@@ -51,7 +52,7 @@ const PERFIS = [
     titulo: 'Transportador',
     corBarra: 'border-t-4 border-t-transportador',
     corIcone: 'bg-transportador-soft text-transportador-aa',
-    corBotao: 'bg-transportador-aa hover:bg-transportador-hover text-white',
+    variant: 'transportador' as const,
     Icon: Truck,
     descricao:
       'Informe sua disponibilidade de veículo e capacidade para assumir entregas que aguardam transporte solidário.',
@@ -90,28 +91,27 @@ export function HomePage() {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {isAuthenticated ? (
-            <Link
-              to="/app"
-              className="inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#2B3544]"
+            <Button
+              asChild
+              size="lg"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+              className="px-6 text-sm"
             >
-              <span>Acessar meu painel</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+              <Link to="/app">Acessar meu painel</Link>
+            </Button>
           ) : (
             <>
-              <Link
-                to="/cadastro"
-                className="inline-flex min-h-12 items-center gap-2 rounded-[8px] bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#2B3544]"
+              <Button
+                asChild
+                size="lg"
+                rightIcon={<ArrowRight className="h-4 w-4" />}
+                className="px-6 text-sm"
               >
-                <span>Criar conta gratuita</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex min-h-12 items-center gap-2 rounded-[8px] border border-border bg-surface px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle"
-              >
-                <span>Já tenho conta</span>
-              </Link>
+                <Link to="/cadastro">Criar conta gratuita</Link>
+              </Button>
+              <Button asChild variant="secondary" size="lg" className="px-6 text-sm">
+                <Link to="/login">Já tenho conta</Link>
+              </Button>
             </>
           )}
         </div>
@@ -139,7 +139,7 @@ export function HomePage() {
                 <div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-[10px] ${perfil.corIcone}`}
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-button ${perfil.corIcone}`}
                       aria-hidden="true"
                     >
                       <Icon className="h-5 w-5" />
@@ -165,13 +165,16 @@ export function HomePage() {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-border">
-                  <Link
-                    to={isAuthenticated ? '/app' : perfil.to}
-                    className={`inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-[8px] px-4 py-2 text-sm font-semibold transition-colors ${perfil.corBotao}`}
+                  <Button
+                    asChild
+                    variant={perfil.variant}
+                    rightIcon={<ArrowRight className="h-4 w-4" />}
+                    className="w-full"
                   >
-                    <span>{isAuthenticated ? 'Acessar painel' : perfil.cta}</span>
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                    <Link to={isAuthenticated ? '/app' : perfil.to}>
+                      {isAuthenticated ? 'Acessar painel' : perfil.cta}
+                    </Link>
+                  </Button>
                 </div>
               </Card>
             )

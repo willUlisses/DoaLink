@@ -4,7 +4,7 @@ import type { ItemDoacaoResponse } from './oferta.ts'
 
 export interface ReservaEntregaRequest {
   ofertaId: number
-  precisaTransporte: boolean
+  precisaTransporte?: boolean
 }
 
 export interface VincularTransporteRequest {

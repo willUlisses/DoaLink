@@ -15,6 +15,7 @@ import { useToast } from '../../../hooks/useToast.ts'
 import { normalizeApiError } from '../../../services/api.ts'
 import { cancelarOferta, listarMinhasOfertas } from '../../../services/ofertas.service.ts'
 import type { OfertaDoacaoResponse } from '../../../types/oferta.ts'
+import { LABELS_SITUACAO_OFERTA } from '../../../utils/labels.ts'
 
 export function MinhasOfertasPage() {
   useDocumentTitle('Minhas ofertas')
@@ -61,19 +62,15 @@ export function MinhasOfertasPage() {
               Acompanhe todas as ofertas publicadas por você e cancele ofertas ainda disponíveis.
             </p>
           </div>
-          <Link
-            to="/app/ofertas/nova"
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-doador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-doador-hover"
-          >
-            <PlusCircle className="h-4 w-4" aria-hidden="true" />
-            <span>Nova oferta</span>
-          </Link>
+          <Button asChild variant="doador" leftIcon={<PlusCircle className="h-4 w-4" />}>
+            <Link to="/app/ofertas/nova">Nova oferta</Link>
+          </Button>
         </div>
       </div>
 
       <InfoBanner tone="info">
-        A edição de ofertas após a criação não está disponível na API. Apenas ofertas com situação{' '}
-        <strong>DISPONIVEL</strong> podem ser canceladas.
+        Após publicada, uma oferta não pode ser editada. Apenas ofertas com situação{' '}
+        <strong>{LABELS_SITUACAO_OFERTA.DISPONIVEL}</strong> podem ser canceladas.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -86,12 +83,9 @@ export function MinhasOfertasPage() {
           title="Você ainda não publicou ofertas"
           description="Registre sua primeira oferta com um ou mais itens para que ONGs receptoras possam reservar."
           action={
-            <Link
-              to="/app/ofertas/nova"
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-doador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-doador-hover"
-            >
-              Publicar primeira oferta
-            </Link>
+            <Button asChild variant="doador">
+              <Link to="/app/ofertas/nova">Publicar primeira oferta</Link>
+            </Button>
           }
         />
       ) : null}
@@ -105,12 +99,9 @@ export function MinhasOfertasPage() {
               variant="owner"
               actions={
                 <>
-                  <Link
-                    to={`/app/ofertas/${oferta.id}`}
-                    className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                  >
-                    Detalhes
-                  </Link>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link to={`/app/ofertas/${oferta.id}`}>Detalhes</Link>
+                  </Button>
                   {oferta.situacao === 'DISPONIVEL' ? (
                     <Button
                       variant="destructive"

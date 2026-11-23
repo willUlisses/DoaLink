@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom'
 import { ErrorState } from '../../components/feedback/ErrorState.tsx'
 import { InfoBanner } from '../../components/feedback/InfoBanner.tsx'
 import { CardListSkeleton } from '../../components/feedback/Skeleton.tsx'
+import { Button } from '../../components/ui/Button.tsx'
 import { Card } from '../../components/ui/Card.tsx'
 import { ProfileBadge } from '../../components/ui/ProfileBadge.tsx'
 import { useAsyncResource } from '../../hooks/useAsyncResource.ts'
@@ -21,7 +22,7 @@ import { useAuth } from '../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { listarCampanhas, listarMinhasCampanhas } from '../../services/campanhas.service.ts'
 import { listarMinhasDisponibilidades } from '../../services/disponibilidades.service.ts'
-import { listarMinhasNecessidades } from '../../services/necessidades.service.ts'
+import { listarMinhasNecessidades, listarNecessidades } from '../../services/necessidades.service.ts'
 import { listarMinhasOfertas, listarOfertasDisponiveis } from '../../services/ofertas.service.ts'
 import {
   listarMinhasEntregasTransportador,
@@ -29,10 +30,11 @@ import {
   listarReservasAguardandoTransporte,
   listarReservasMinhasOfertasDoador,
 } from '../../services/reservas.service.ts'
-import { PROFILE_THEME } from '../../utils/theme.ts'
+import { variantForProfile } from '../../utils/theme.ts'
 
 interface DashboardSummary {
-  ofertasDisponiveis: number
+  ofertasDisponiveis?: number
+  necessidadesAbertas?: number
   campanhasAtivas: number
   minhasOfertas?: number
   minhasOfertasDisponiveis?: number
@@ -51,19 +53,19 @@ export function DashboardPage() {
 
   const fetchSummary = useCallback(async (): Promise<DashboardSummary> => {
     if (!user) {
-      return { ofertasDisponiveis: 0, campanhasAtivas: 0 }
+      return { campanhasAtivas: 0 }
     }
 
     if (user.tipoUsuario === 'DOADOR') {
-      const [ofertasPage, campanhasPage, minhasOfertas, reservasDoador] = await Promise.all([
-        listarOfertasDisponiveis({ page: 0, size: 1 }),
+      const [necessidadesPage, campanhasPage, minhasOfertas, reservasDoador] = await Promise.all([
+        listarNecessidades({ situacao: 'ABERTA', page: 0, size: 1 }),
         listarCampanhas({ situacao: 'ATIVA', page: 0, size: 1 }),
         listarMinhasOfertas(),
         listarReservasMinhasOfertasDoador(),
       ])
 
       return {
-        ofertasDisponiveis: ofertasPage.totalElements,
+        necessidadesAbertas: necessidadesPage.totalElements,
         campanhasAtivas: campanhasPage.totalElements,
         minhasOfertas: minhasOfertas.length,
         minhasOfertasDisponiveis: minhasOfertas.filter((o) => o.situacao === 'DISPONIVEL').length,
@@ -95,14 +97,7 @@ export function DashboardPage() {
       }
     }
 
-    const [
-      ofertasPage,
-      campanhasPage,
-      aguardando,
-      minhasEntregas,
-      minhasDisponibilidades,
-    ] = await Promise.all([
-      listarOfertasDisponiveis({ page: 0, size: 1 }),
+    const [campanhasPage, aguardando, minhasEntregas, minhasDisponibilidades] = await Promise.all([
       listarCampanhas({ situacao: 'ATIVA', page: 0, size: 1 }),
       listarReservasAguardandoTransporte(),
       listarMinhasEntregasTransportador(),
@@ -110,7 +105,6 @@ export function DashboardPage() {
     ])
 
     return {
-      ofertasDisponiveis: ofertasPage.totalElements,
       campanhasAtivas: campanhasPage.totalElements,
       aguardandoTransporte: aguardando.length,
       minhasEntregas: minhasEntregas.length,
@@ -126,8 +120,6 @@ export function DashboardPage() {
   } = useAsyncResource(fetchSummary, [user?.id, user?.tipoUsuario], Boolean(user))
 
   if (!user) return null
-
-  const theme = PROFILE_THEME[user.tipoUsuario]
 
   return (
     <div className="space-y-6">
@@ -146,33 +138,33 @@ export function DashboardPage() {
 
         <div className="flex flex-wrap gap-2">
           {user.tipoUsuario === 'DOADOR' ? (
-            <Link
-              to="/app/ofertas/nova"
-              className={`inline-flex min-h-10 items-center gap-2 rounded-[8px] px-4 py-2 text-sm font-semibold text-white transition-colors ${theme.solidBg} ${theme.solidHoverBg}`}
+            <Button
+              asChild
+              variant={variantForProfile(user.tipoUsuario)}
+              leftIcon={<PlusCircle className="h-4 w-4" />}
             >
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              <span>Publicar nova oferta</span>
-            </Link>
+              <Link to="/app/ofertas/nova">Publicar nova oferta</Link>
+            </Button>
           ) : null}
 
           {user.tipoUsuario === 'RECEPTOR' ? (
-            <Link
-              to="/app/ofertas"
-              className={`inline-flex min-h-10 items-center gap-2 rounded-[8px] px-4 py-2 text-sm font-semibold text-white transition-colors ${theme.solidBg} ${theme.solidHoverBg}`}
+            <Button
+              asChild
+              variant={variantForProfile(user.tipoUsuario)}
+              leftIcon={<Gift className="h-4 w-4" />}
             >
-              <Gift className="h-4 w-4" aria-hidden="true" />
-              <span>Explorar ofertas disponíveis</span>
-            </Link>
+              <Link to="/app/ofertas">Explorar ofertas disponíveis</Link>
+            </Button>
           ) : null}
 
           {user.tipoUsuario === 'TRANSPORTADOR' ? (
-            <Link
-              to="/app/entregas-disponiveis"
-              className={`inline-flex min-h-10 items-center gap-2 rounded-[8px] px-4 py-2 text-sm font-semibold text-white transition-colors ${theme.solidBg} ${theme.solidHoverBg}`}
+            <Button
+              asChild
+              variant={variantForProfile(user.tipoUsuario)}
+              leftIcon={<Truck className="h-4 w-4" />}
             >
-              <Truck className="h-4 w-4" aria-hidden="true" />
-              <span>Ver entregas aguardando transporte</span>
-            </Link>
+              <Link to="/app/entregas-disponiveis">Ver entregas aguardando transporte</Link>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -337,27 +329,46 @@ export function DashboardPage() {
               <Flame className="h-4 w-4 text-danger" aria-hidden="true" />
             </div>
             <p className="mt-2 text-3xl font-bold text-ink tabular-nums">
-              {summary.ofertasDisponiveis}
+              {user.tipoUsuario === 'RECEPTOR'
+                ? (summary.ofertasDisponiveis ?? 0)
+                : user.tipoUsuario === 'DOADOR'
+                  ? (summary.necessidadesAbertas ?? 0)
+                  : summary.campanhasAtivas}
             </p>
             <p className="mt-1 text-xs text-ink-secondary">
-              Ofertas disponíveis e {summary.campanhasAtivas} campanhas ativas
+              {user.tipoUsuario === 'RECEPTOR'
+                ? `Ofertas disponíveis e ${summary.campanhasAtivas} campanhas ativas`
+                : user.tipoUsuario === 'DOADOR'
+                  ? `Necessidades abertas e ${summary.campanhasAtivas} campanhas ativas`
+                  : `${summary.campanhasAtivas} campanhas emergenciais ativas`}
             </p>
-            <Link
-              to="/app/campanhas"
-              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-ink hover:underline"
-            >
-              <span>Ver campanhas emergenciais</span>
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {user.tipoUsuario === 'DOADOR' ? (
+                <Link
+                  to="/app/necessidades"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-doador-aa hover:underline"
+                >
+                  <span>Ver necessidades</span>
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              ) : null}
+              <Link
+                to="/app/campanhas"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-ink hover:underline"
+              >
+                <span>Ver campanhas emergenciais</span>
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            </div>
           </Card>
         </div>
       ) : null}
 
-      <InfoBanner tone="info" title="Fluxo operacional vigente">
-        O DoaLink opera por listagem e reserva explícita: ofertas disponíveis são reservadas
-        diretamente por ONGs receptoras e assumidas por transportadores disponíveis. Recursos de
-        sugestões automáticas (matchmaking), rotas automáticas por mapas e histórico detalhado de
-        etapas ainda não possuem endpoints na API.
+      <InfoBanner tone="info" title="Como funciona o fluxo de doações">
+        No DoaLink, as ofertas disponíveis são reservadas diretamente pelas ONGs receptoras e, quando
+        necessário, assumidas por transportadores com disponibilidade compatível. Recursos como
+        sugestões automáticas de combinação, roteirização por mapas e linha do tempo detalhada
+        estarão disponíveis em atualizações futuras.
       </InfoBanner>
     </div>
   )

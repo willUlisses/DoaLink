@@ -25,6 +25,7 @@ export interface OfertaDoacaoResponse {
   id: number
   situacao: SituacaoOferta
   doador: ContatoResponse | null
+  receptor?: ContatoResponse | null
   localRetirada: EnderecoResponse | null
   itens: ItemDoacaoResponse[]
   criadoEm: string

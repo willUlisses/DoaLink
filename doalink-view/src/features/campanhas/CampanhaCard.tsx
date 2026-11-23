@@ -54,7 +54,9 @@ export function CampanhaCard({
           {campanha.receptor ? (
             <div className="flex items-center gap-2 text-ink">
               <Building2 className="h-4 w-4 shrink-0 text-receptor-aa" aria-hidden="true" />
-              <span className="truncate font-medium">{campanha.receptor.nome}</span>
+              <span className="truncate font-medium" title={campanha.receptor.nome}>
+                {campanha.receptor.nome}
+              </span>
             </div>
           ) : null}
 
@@ -75,20 +77,24 @@ export function CampanhaCard({
               Necessidades emergenciais ({campanha.itens.length})
             </p>
             <ul className="space-y-1.5">
-              {campanha.itens.slice(0, 3).map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between gap-2 rounded-[8px] bg-canvas px-2.5 py-1.5 text-xs"
-                >
-                  <span className="min-w-0 truncate text-ink">
-                    {LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]}
-                    {item.descricao ? ` — ${item.descricao}` : ''}
-                  </span>
-                  <Badge tone="neutral" className="shrink-0">
-                    {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
-                  </Badge>
-                </li>
-              ))}
+              {campanha.itens.slice(0, 3).map((item) => {
+                const itemTexto = `${LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]}${
+                  item.descricao ? ` — ${item.descricao}` : ''
+                }`
+                return (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 rounded-button bg-canvas px-2.5 py-1.5 text-xs"
+                  >
+                    <span className="min-w-0 truncate text-ink" title={itemTexto}>
+                      {itemTexto}
+                    </span>
+                    <Badge tone="neutral" className="shrink-0">
+                      {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
+                    </Badge>
+                  </li>
+                )
+              })}
             </ul>
             {campanha.itens.length > 3 ? (
               <p className="mt-1.5 text-xs font-medium text-ink-secondary">

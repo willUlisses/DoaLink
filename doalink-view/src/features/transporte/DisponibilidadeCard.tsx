@@ -59,7 +59,7 @@ export function DisponibilidadeCard({
           </div>
         </div>
 
-        <div className="rounded-[10px] border border-border bg-canvas p-3">
+        <div className="rounded-button border border-border bg-canvas p-3">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-ink-secondary">Capacidade disponível</span>
             <span className="font-bold text-ink tabular-nums">

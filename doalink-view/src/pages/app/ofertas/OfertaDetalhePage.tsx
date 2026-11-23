@@ -1,8 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, BookmarkCheck, Calendar, MapPin, Package, ShieldAlert, User } from 'lucide-react'
+import {
+  ArrowLeft,
+  BookmarkCheck,
+  Building2,
+  Calendar,
+  Mail,
+  MapPin,
+  Package,
+  Phone,
+  ShieldAlert,
+  User,
+} from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ConfirmDialog } from '../../../components/feedback/ConfirmDialog.tsx'
 import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { InfoBanner } from '../../../components/feedback/InfoBanner.tsx'
@@ -27,7 +38,13 @@ import {
   formatarEnderecoResumo,
   formatarQuantidade,
 } from '../../../utils/formatters.ts'
-import { LABELS_CATEGORIA_ITEM, SIGLAS_UNIDADE } from '../../../utils/labels.ts'
+import {
+  LABELS_CATEGORIA_ITEM,
+  LABELS_SITUACAO_OFERTA,
+  LABELS_SITUACAO_RESERVA,
+  SIGLAS_UNIDADE,
+} from '../../../utils/labels.ts'
+import { formatarTelefone } from '../../../utils/masks.ts'
 
 export function OfertaDetalhePage() {
   const { id } = useParams()
@@ -38,6 +55,8 @@ export function OfertaDetalhePage() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromPath = (location.state as { from?: string } | null)?.from
 
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
@@ -64,20 +83,25 @@ export function OfertaDetalhePage() {
   const isForbidden = error?.status === 403
   const errorMessage = !validId ? 'Identificador de oferta inválido.' : error?.message ?? null
 
+  const possuiEnderecoRetirada = Boolean(
+    oferta?.localRetirada && (oferta.localRetirada.logradouro || oferta.localRetirada.cidade),
+  )
+
   const handleReservar = async (values: CriarReservaFormValues) => {
     if (!oferta) return
     setReserveError(null)
+    const precisaTransporte = possuiEnderecoRetirada ? values.precisaTransporte : false
     try {
       const reserva = await reservarOferta({
         ofertaId: oferta.id,
-        precisaTransporte: values.precisaTransporte,
+        precisaTransporte,
       })
       showToast({
         variant: 'success',
         title: `Reserva #${reserva.id} confirmada`,
-        description: values.precisaTransporte
+        description: precisaTransporte
           ? 'A reserva está aguardando vínculo de um transportador.'
-          : 'Retirada direta registrada. Confira o endereço completo em Minhas reservas.',
+          : 'Retirada registrada. Entre em contato com o doador para combinar os detalhes.',
       })
       navigate('/app/minhas-reservas')
     } catch (err) {
@@ -110,6 +134,18 @@ export function OfertaDetalhePage() {
   }
 
   const isEnderecoCompleto = Boolean(oferta?.localRetirada?.logradouro)
+  const backTarget =
+    user?.tipoUsuario === 'DOADOR'
+      ? fromPath === '/app/reservas-ofertas'
+        ? { to: '/app/reservas-ofertas', label: 'Reservas recebidas' }
+        : { to: '/app/minhas-ofertas', label: 'Minhas ofertas' }
+      : user?.tipoUsuario === 'TRANSPORTADOR'
+        ? fromPath === '/app/entregas-disponiveis'
+          ? { to: '/app/entregas-disponiveis', label: 'Aguardando transporte' }
+          : { to: '/app/minhas-entregas', label: 'Minhas entregas' }
+        : fromPath === '/app/minhas-reservas'
+          ? { to: '/app/minhas-reservas', label: 'Minhas reservas' }
+          : { to: '/app/ofertas', label: 'Ofertas disponíveis' }
 
   return (
     <div className="space-y-6">
@@ -117,16 +153,16 @@ export function OfertaDetalhePage() {
         <Breadcrumbs
           items={[
             { label: 'Painel', to: '/app' },
-            { label: 'Ofertas disponíveis', to: '/app/ofertas' },
+            { label: backTarget.label, to: backTarget.to },
             { label: Number.isFinite(ofertaId) ? `Oferta #${ofertaId}` : 'Detalhes' },
           ]}
         />
         <Link
-          to="/app/ofertas"
+          to={backTarget.to}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-secondary hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span>Voltar para ofertas</span>
+          <span>Voltar para {backTarget.label}</span>
         </Link>
       </div>
 
@@ -137,8 +173,13 @@ export function OfertaDetalhePage() {
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-warning-soft text-warning">
             <ShieldAlert className="h-5 w-5" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-ink">Detalhe restrito para Transportador</h1>
+          <h1 className="text-xl font-bold text-ink">Acesso restrito a esta oferta</h1>
           <p className="mt-2 text-sm text-ink-secondary">{errorMessage}</p>
+          <div className="mt-5 flex justify-center">
+            <Button asChild variant="secondary">
+              <Link to={backTarget.to}>Ir para {backTarget.label}</Link>
+            </Button>
+          </div>
         </Card>
       ) : null}
 
@@ -160,7 +201,7 @@ export function OfertaDetalhePage() {
               <StatusBadge situacao={oferta.situacao} />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 rounded-[12px] border border-border bg-canvas p-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 rounded-card border border-border bg-canvas p-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                   Doador
@@ -171,11 +212,13 @@ export function OfertaDetalhePage() {
                       <User className="h-4 w-4 text-doador-aa" aria-hidden="true" />
                       <span>{oferta.doador.nome}</span>
                     </p>
-                    {isEnderecoCompleto ? (
+                    {oferta.doador.email ? (
                       <>
                         <p className="text-xs text-ink-secondary">{oferta.doador.email}</p>
                         {oferta.doador.telefone ? (
-                          <p className="text-xs text-ink-secondary">{oferta.doador.telefone}</p>
+                          <p className="text-xs text-ink-secondary">
+                            {formatarTelefone(oferta.doador.telefone)}
+                          </p>
                         ) : null}
                       </>
                     ) : (
@@ -206,6 +249,28 @@ export function OfertaDetalhePage() {
               </div>
             </div>
 
+            {oferta.receptor ? (
+              <div className="rounded-card border border-receptor-border bg-receptor-soft/60 p-4 space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-receptor-aa">
+                  ONG responsável pela reserva
+                </p>
+                <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <Building2 className="h-4 w-4 shrink-0 text-receptor-aa" aria-hidden="true" />
+                  <span>{oferta.receptor.nome}</span>
+                </p>
+                <p className="flex items-center gap-2 text-xs text-ink-secondary">
+                  <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>{oferta.receptor.email}</span>
+                </p>
+                {oferta.receptor.telefone ? (
+                  <p className="flex items-center gap-2 text-xs text-ink-secondary">
+                    <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{formatarTelefone(oferta.receptor.telefone)}</span>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             <div>
               <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
                 <Package className="h-4 w-4 text-doador-aa" aria-hidden="true" />
@@ -215,7 +280,7 @@ export function OfertaDetalhePage() {
                 {oferta.itens.map((item) => (
                   <li
                     key={item.id}
-                    className="flex flex-col justify-between gap-2 rounded-[10px] border border-border bg-surface p-3.5 sm:flex-row sm:items-center"
+                    className="flex flex-col justify-between gap-2 rounded-button border border-border bg-surface p-3.5 sm:flex-row sm:items-center"
                   >
                     <div>
                       <p className="text-sm font-semibold text-ink">{item.descricao}</p>
@@ -239,15 +304,25 @@ export function OfertaDetalhePage() {
                 {oferta.situacao === 'DISPONIVEL' ? (
                   <form onSubmit={handleSubmit(handleReservar)} className="mt-3 space-y-4">
                     <p className="text-xs leading-relaxed text-ink-secondary">
-                      Ao confirmar a reserva, a oferta muda para <strong>RESERVADA</strong> e o
-                      endereço completo de retirada fica disponível na sua lista de reservas.
+                      Ao confirmar a reserva, a oferta muda para{' '}
+                      <strong>{LABELS_SITUACAO_OFERTA.RESERVADA}</strong> e os dados completos ficam
+                      disponíveis na sua lista de reservas.
                     </p>
 
-                    <Checkbox
-                      label="Preciso de transporte para esta entrega"
-                      description="Se marcado, a entrega ficará visível para transportadores assumirem. Se desmarcado, sua ONG fará a retirada direta."
-                      {...register('precisaTransporte')}
-                    />
+                    {possuiEnderecoRetirada ? (
+                      <Checkbox
+                        label="Preciso de transporte para esta entrega"
+                        description="Se marcado, a entrega ficará visível para transportadores assumirem. Se desmarcado, sua ONG fará a retirada direta."
+                        {...register('precisaTransporte')}
+                      />
+                    ) : (
+                      <InfoBanner tone="info">
+                        Esta oferta não possui endereço de retirada cadastrado. A reserva avançará
+                        diretamente para{' '}
+                        <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_RETIRADA}</strong> para que sua
+                        ONG entre em contato com o doador e combine a retirada ou entrega.
+                      </InfoBanner>
+                    )}
 
                     {reserveError ? (
                       <InfoBanner tone="danger">{reserveError}</InfoBanner>
@@ -268,8 +343,9 @@ export function OfertaDetalhePage() {
                 ) : (
                   <div className="mt-3">
                     <InfoBanner tone="info">
-                      Esta oferta está com situação <strong>{oferta.situacao}</strong> e não pode
-                      mais ser reservada.
+                      Esta oferta está com situação{' '}
+                      <strong>{LABELS_SITUACAO_OFERTA[oferta.situacao]}</strong> e não pode mais ser
+                      reservada.
                     </InfoBanner>
                   </div>
                 )}
@@ -280,8 +356,9 @@ export function OfertaDetalhePage() {
               <Card className="space-y-3">
                 <h2 className="text-base font-bold text-ink">Gestão da oferta</h2>
                 <InfoBanner tone="info">
-                  A edição de ofertas após a publicação não é suportada pela API. Caso necessário,
-                  cancele uma oferta ainda disponível e publique uma nova.
+                  Após publicada, uma oferta não pode ser editada. Caso precise alterar alguma
+                  informação, cancele a oferta enquanto estiver com situação{' '}
+                  <strong>{LABELS_SITUACAO_OFERTA.DISPONIVEL}</strong> e publique uma nova.
                 </InfoBanner>
                 {oferta.situacao === 'DISPONIVEL' ? (
                   <Button
@@ -301,7 +378,7 @@ export function OfertaDetalhePage() {
       <ConfirmDialog
         open={cancelDialogOpen}
         title="Cancelar oferta de doação?"
-        description="Esta ação altera a situação da oferta para CANCELADA e não pode ser desfeita."
+        description={`Esta ação altera a situação da oferta para "${LABELS_SITUACAO_OFERTA.CANCELADA}" e não pode ser desfeita.`}
         confirmLabel="Sim, cancelar oferta"
         cancelLabel="Manter oferta"
         loading={canceling}

@@ -1,6 +1,6 @@
-import { ArrowLeft, Building2, Calendar, Flame, MapPin } from 'lucide-react'
+import { ArrowLeft, Building2, Calendar, Flame, MapPin, Phone } from 'lucide-react'
 import { useCallback } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { CardListSkeleton } from '../../../components/feedback/Skeleton.tsx'
 import { Breadcrumbs } from '../../../components/layout/Breadcrumbs.tsx'
@@ -8,6 +8,7 @@ import { Badge } from '../../../components/ui/Badge.tsx'
 import { Card } from '../../../components/ui/Card.tsx'
 import { StatusBadge } from '../../../components/ui/StatusBadge.tsx'
 import { useAsyncResource } from '../../../hooks/useAsyncResource.ts'
+import { useAuth } from '../../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
 import { buscarCampanhaPorId } from '../../../services/campanhas.service.ts'
 import {
@@ -16,12 +17,17 @@ import {
   formatarQuantidade,
 } from '../../../utils/formatters.ts'
 import { LABELS_CATEGORIA_ITEM, SIGLAS_UNIDADE } from '../../../utils/labels.ts'
+import { formatarTelefone } from '../../../utils/masks.ts'
 
 export function CampanhaDetalhePage() {
   const { id } = useParams()
   const campanhaId = Number(id)
   const validId = Number.isFinite(campanhaId) && campanhaId > 0
   useDocumentTitle(validId ? `Campanha #${campanhaId}` : 'Detalhes da campanha')
+
+  const { user } = useAuth()
+  const location = useLocation()
+  const fromPath = (location.state as { from?: string } | null)?.from
 
   const fetcher = useCallback(() => buscarCampanhaPorId(campanhaId), [campanhaId])
   const { data: campanha, loading, error, reload: loadCampanha } = useAsyncResource(
@@ -31,22 +37,27 @@ export function CampanhaDetalhePage() {
   )
   const errorMessage = !validId ? 'Identificador de campanha inválido.' : error?.message ?? null
 
+  const backTarget =
+    user?.tipoUsuario === 'RECEPTOR' && fromPath === '/app/minhas-campanhas'
+      ? { to: '/app/minhas-campanhas', label: 'Minhas campanhas' }
+      : { to: '/app/campanhas', label: 'Campanhas emergenciais' }
+
   return (
     <div className="space-y-6">
       <div>
         <Breadcrumbs
           items={[
             { label: 'Painel', to: '/app' },
-            { label: 'Campanhas', to: '/app/campanhas' },
+            { label: backTarget.label, to: backTarget.to },
             { label: Number.isFinite(campanhaId) ? `Campanha #${campanhaId}` : 'Detalhes' },
           ]}
         />
         <Link
-          to="/app/campanhas"
+          to={backTarget.to}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-secondary hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span>Voltar para campanhas</span>
+          <span>Voltar para {backTarget.label}</span>
         </Link>
       </div>
 
@@ -74,7 +85,7 @@ export function CampanhaDetalhePage() {
           </div>
 
           {campanha.descricao ? (
-            <div className="rounded-[12px] border border-border bg-surface-subtle/50 p-4">
+            <div className="rounded-card border border-border bg-surface-subtle/50 p-4">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                 Contexto da emergência
               </h2>
@@ -84,7 +95,7 @@ export function CampanhaDetalhePage() {
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 gap-4 rounded-[12px] border border-border bg-canvas p-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 rounded-card border border-border bg-canvas p-4 sm:grid-cols-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                 Organização responsável
@@ -96,6 +107,12 @@ export function CampanhaDetalhePage() {
                     <span>{campanha.receptor.nome}</span>
                   </p>
                   <p className="mt-0.5 text-xs text-ink-secondary">{campanha.receptor.email}</p>
+                  {campanha.receptor.telefone ? (
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-secondary">
+                      <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span>{formatarTelefone(campanha.receptor.telefone)}</span>
+                    </p>
+                  ) : null}
                 </>
               ) : (
                 <p className="mt-1 text-xs text-ink-secondary">Não informado</p>
@@ -126,7 +143,7 @@ export function CampanhaDetalhePage() {
                 {campanha.itens.map((item) => (
                   <li
                     key={item.id}
-                    className="flex flex-col justify-between gap-2 rounded-[10px] border border-border bg-surface p-3.5 sm:flex-row sm:items-center"
+                    className="flex flex-col justify-between gap-2 rounded-button border border-border bg-surface p-3.5 sm:flex-row sm:items-center"
                   >
                     <div>
                       <p className="text-sm font-semibold text-ink">

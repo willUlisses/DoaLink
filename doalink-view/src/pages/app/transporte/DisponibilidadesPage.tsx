@@ -32,7 +32,11 @@ import { TIPO_UNIDADE, TIPO_VEICULO } from '../../../types/enums.ts'
 import type { DisponibilidadeTransporteResponse } from '../../../types/transporte.ts'
 import { applyApiErrorsToForm } from '../../../utils/formErrors.ts'
 import { obterDataLocalHojeISO } from '../../../utils/formatters.ts'
-import { LABELS_UNIDADE, LABELS_VEICULO } from '../../../utils/labels.ts'
+import {
+  LABELS_SITUACAO_DISPONIBILIDADE,
+  LABELS_UNIDADE,
+  LABELS_VEICULO,
+} from '../../../utils/labels.ts'
 import { limparDigitos } from '../../../utils/validators.ts'
 
 const VEICULO_OPTIONS = Object.values(TIPO_VEICULO).map((v) => ({
@@ -179,6 +183,7 @@ export function DisponibilidadesPage() {
             variant="transportador"
             leftIcon={<PlusCircle className="h-4 w-4" />}
             onClick={() => setShowForm((prev) => !prev)}
+            className="shrink-0 whitespace-nowrap"
           >
             {showForm ? 'Ocultar formulário' : 'Nova disponibilidade'}
           </Button>
@@ -186,9 +191,10 @@ export function DisponibilidadesPage() {
       </div>
 
       <InfoBanner tone="info">
-        É permitida apenas uma disponibilidade ativa (<strong>DISPONIVEL</strong> ou{' '}
-        <strong>RESERVADA</strong>) por data. Não há edição após o cadastro; disponibilidades sem
-        vínculos podem ser canceladas.
+        É permitida apenas uma disponibilidade ativa (
+        <strong>{LABELS_SITUACAO_DISPONIBILIDADE.DISPONIVEL}</strong> ou{' '}
+        <strong>{LABELS_SITUACAO_DISPONIBILIDADE.RESERVADA}</strong>) por data. Não há edição após
+        o cadastro; disponibilidades sem vínculos podem ser canceladas.
       </InfoBanner>
 
       {showForm ? (
@@ -338,7 +344,7 @@ export function DisponibilidadesPage() {
         description={
           pendingAction?.type === 'cancel'
             ? `Deseja cancelar a disponibilidade #${pendingAction.item.id}? Essa ação não pode ser desfeita.`
-            : `Ao encerrar a disponibilidade #${pendingAction?.item.id ?? ''}, ela será marcada como CONCLUIDA. Todas as entregas vinculadas já devem estar concluídas.`
+            : `Ao encerrar a disponibilidade #${pendingAction?.item.id ?? ''}, ela será marcada como "${LABELS_SITUACAO_DISPONIBILIDADE.CONCLUIDA}". Todas as entregas vinculadas já devem estar concluídas.`
         }
         confirmLabel={
           pendingAction?.type === 'cancel' ? 'Confirmar cancelamento' : 'Confirmar encerramento'

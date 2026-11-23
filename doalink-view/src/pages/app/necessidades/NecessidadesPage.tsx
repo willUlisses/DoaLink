@@ -1,16 +1,16 @@
-import { ClipboardList, PlusCircle } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '../../../components/feedback/EmptyState.tsx'
 import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { CardListSkeleton } from '../../../components/feedback/Skeleton.tsx'
 import { Breadcrumbs } from '../../../components/layout/Breadcrumbs.tsx'
+import { Button } from '../../../components/ui/Button.tsx'
 import { Card } from '../../../components/ui/Card.tsx'
 import { Pagination } from '../../../components/ui/Pagination.tsx'
 import { Select } from '../../../components/ui/Select.tsx'
 import { NecessidadeCard } from '../../../features/necessidades/NecessidadeCard.tsx'
 import { useAsyncResource } from '../../../hooks/useAsyncResource.ts'
-import { useAuth } from '../../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
 import { listarNecessidades } from '../../../services/necessidades.service.ts'
 import { SITUACAO_NECESSIDADE, type SituacaoNecessidade } from '../../../types/enums.ts'
@@ -23,7 +23,6 @@ const SITUACAO_OPTIONS = Object.values(SITUACAO_NECESSIDADE).map((s) => ({
 
 export function NecessidadesPage() {
   useDocumentTitle('Necessidades de doação')
-  const { user } = useAuth()
 
   const [situacao, setSituacao] = useState<SituacaoNecessidade>('ABERTA')
   const [page, setPage] = useState(0)
@@ -41,22 +40,11 @@ export function NecessidadesPage() {
     <div className="space-y-6">
       <div>
         <Breadcrumbs items={[{ label: 'Painel', to: '/app' }, { label: 'Necessidades' }]} />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">Necessidades de doação</h1>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Consulte as demandas publicadas por ONGs receptoras.
-            </p>
-          </div>
-          {user?.tipoUsuario === 'RECEPTOR' ? (
-            <Link
-              to="/app/necessidades/nova"
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-            >
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              <span>Registrar necessidade</span>
-            </Link>
-          ) : null}
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Necessidades de doação</h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Consulte as demandas publicadas por ONGs receptoras para direcionar suas doações.
+          </p>
         </div>
       </div>
 
@@ -93,12 +81,9 @@ export function NecessidadesPage() {
                 necessidade={nec}
                 variant="public"
                 actions={
-                  <Link
-                    to={`/app/necessidades/${nec.id}`}
-                    className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                  >
-                    Ver detalhes
-                  </Link>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link to={`/app/necessidades/${nec.id}`}>Ver detalhes</Link>
+                  </Button>
                 }
               />
             ))}

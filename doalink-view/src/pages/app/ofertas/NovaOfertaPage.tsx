@@ -170,7 +170,7 @@ export function NovaOfertaPage() {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="rounded-[12px] border border-border bg-canvas p-4 space-y-3"
+                className="rounded-card border border-border bg-canvas p-4 space-y-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wide text-ink-secondary">

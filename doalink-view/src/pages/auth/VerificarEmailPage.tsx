@@ -128,7 +128,7 @@ export function VerificarEmailPage() {
     <div className="mx-auto max-w-md px-4 py-10 sm:py-14">
       <Card padding="lg">
         <div className="mb-6">
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-[10px] bg-receptor-soft text-receptor-aa">
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-button bg-receptor-soft text-receptor-aa">
             <MailCheck className="h-5 w-5" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-bold text-ink">Confirmar e-mail</h1>
@@ -141,7 +141,7 @@ export function VerificarEmailPage() {
         <div
           role="status"
           aria-live="polite"
-          className={`mb-5 flex items-center justify-between rounded-[12px] border px-4 py-3 text-sm ${
+          className={`mb-5 flex items-center justify-between rounded-card border px-4 py-3 text-sm ${
             isExpired
               ? 'border-warning-border bg-warning-soft text-warning'
               : 'border-border bg-surface-subtle text-ink'

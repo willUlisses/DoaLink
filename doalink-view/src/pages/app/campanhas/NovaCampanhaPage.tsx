@@ -12,6 +12,7 @@ import { Input } from '../../../components/ui/Input.tsx'
 import { Select } from '../../../components/ui/Select.tsx'
 import { Textarea } from '../../../components/ui/Textarea.tsx'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
+import { useReceptorAddressPrefill } from '../../../hooks/useReceptorAddressPrefill.ts'
 import { useToast } from '../../../hooks/useToast.ts'
 import {
   criarCampanhaSchema,
@@ -20,7 +21,11 @@ import {
 import { criarCampanha } from '../../../services/campanhas.service.ts'
 import { TIPO_ITEM_DOACAO, TIPO_UNIDADE } from '../../../types/enums.ts'
 import { applyApiErrorsToForm } from '../../../utils/formErrors.ts'
-import { LABELS_CATEGORIA_ITEM, LABELS_UNIDADE } from '../../../utils/labels.ts'
+import {
+  LABELS_CATEGORIA_ITEM,
+  LABELS_SITUACAO_CAMPANHA,
+  LABELS_UNIDADE,
+} from '../../../utils/labels.ts'
 import { limparDigitos } from '../../../utils/validators.ts'
 
 const CATEGORIA_OPTIONS = Object.values(TIPO_ITEM_DOACAO).map((c) => ({
@@ -43,6 +48,7 @@ export function NovaCampanhaPage() {
     register,
     control,
     handleSubmit,
+    getValues,
     setValue,
     setError,
     setFocus,
@@ -69,6 +75,8 @@ export function NovaCampanhaPage() {
     control,
     name: 'itens',
   })
+
+  useReceptorAddressPrefill('enderecoRecebimento', setValue, getValues)
 
   const onSubmit = async (values: CriarCampanhaFormValues) => {
     setFormError(null)
@@ -99,7 +107,7 @@ export function NovaCampanhaPage() {
       showToast({
         variant: 'success',
         title: `Campanha "${criada.nome}" criada`,
-        description: 'A campanha já está publicada com situação ATIVA.',
+        description: `A campanha já está publicada com situação "${LABELS_SITUACAO_CAMPANHA.ATIVA}".`,
       })
       navigate('/app/minhas-campanhas')
     } catch (error) {
@@ -120,7 +128,8 @@ export function NovaCampanhaPage() {
         />
         <h1 className="text-2xl font-bold text-ink">Criar campanha emergencial</h1>
         <p className="mt-1 text-sm text-ink-secondary">
-          A campanha inicia com situação ATIVA e exibe o ponto físico de recebimento das doações.
+          A campanha inicia com situação {LABELS_SITUACAO_CAMPANHA.ATIVA} e exibe o ponto físico de
+          recebimento das doações.
         </p>
       </div>
 
@@ -189,7 +198,7 @@ export function NovaCampanhaPage() {
           </div>
 
           {fields.length === 0 ? (
-            <p className="rounded-[10px] border border-dashed border-border p-4 text-center text-xs text-ink-secondary">
+            <p className="rounded-button border border-dashed border-border p-4 text-center text-xs text-ink-secondary">
               Nenhum item adicionado ainda. Clique em "Adicionar item" caso queira detalhar
               quantidades.
             </p>
@@ -198,7 +207,7 @@ export function NovaCampanhaPage() {
               {fields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="rounded-[12px] border border-border bg-canvas p-4 space-y-3"
+                  className="rounded-card border border-border bg-canvas p-4 space-y-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wide text-ink-secondary">

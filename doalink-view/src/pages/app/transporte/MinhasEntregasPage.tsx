@@ -18,6 +18,7 @@ import {
   listarMinhasEntregasTransportador,
 } from '../../../services/reservas.service.ts'
 import type { ReservaEntregaResponse } from '../../../types/reserva.ts'
+import { LABELS_SITUACAO_RESERVA } from '../../../utils/labels.ts'
 
 export function MinhasEntregasPage() {
   useDocumentTitle('Minhas entregas')
@@ -40,7 +41,7 @@ export function MinhasEntregasPage() {
       showToast({
         variant: 'success',
         title: `Entrega #${reservaParaConcluir.id} concluída`,
-        description: 'A reserva e a oferta foram atualizadas para CONCLUIDA.',
+        description: `A reserva e a oferta foram atualizadas para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`,
       })
       setReservaParaConcluir(null)
       loadEntregas()
@@ -67,18 +68,16 @@ export function MinhasEntregasPage() {
               partes.
             </p>
           </div>
-          <Link
-            to="/app/entregas-disponiveis"
-            className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-transportador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-transportador-hover"
-          >
-            Assumir novas entregas
-          </Link>
+          <Button asChild variant="transportador">
+            <Link to="/app/entregas-disponiveis">Assumir novas entregas</Link>
+          </Button>
         </div>
       </div>
 
       <InfoBanner tone="info">
-        A API atual não possui desvinculação de entrega após assumida nem rastreamento GPS em tempo
-        real. Quando a entrega física finalizar, registre a conclusão abaixo.
+        Após assumir uma entrega, não é possível desvinculá-la pelo painel. O acompanhamento por mapa
+        em tempo real estará disponível em uma atualização futura. Quando a entrega física for
+        realizada, registre sua conclusão abaixo.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -91,12 +90,9 @@ export function MinhasEntregasPage() {
           title="Você ainda não assumiu entregas"
           description="Consulte reservas aguardando transporte e vincule uma de suas disponibilidades ativas."
           action={
-            <Link
-              to="/app/entregas-disponiveis"
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-transportador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-transportador-hover"
-            >
-              Ver entregas disponíveis
-            </Link>
+            <Button asChild variant="transportador">
+              <Link to="/app/entregas-disponiveis">Ver entregas disponíveis</Link>
+            </Button>
           }
         />
       ) : null}
@@ -128,7 +124,7 @@ export function MinhasEntregasPage() {
       <ConfirmDialog
         open={Boolean(reservaParaConcluir)}
         title="Confirmar conclusão da entrega?"
-        description={`Confirma que a entrega da Reserva #${reservaParaConcluir?.id ?? ''} foi finalizada? A reserva e a oferta passarão para CONCLUIDA.`}
+        description={`Confirma que a entrega da Reserva #${reservaParaConcluir?.id ?? ''} foi finalizada? A reserva e a oferta passarão para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`}
         confirmLabel="Confirmar conclusão"
         cancelLabel="Voltar"
         confirmVariant="transportador"

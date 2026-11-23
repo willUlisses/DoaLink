@@ -19,6 +19,7 @@ import {
   listarMinhasReservasReceptor,
 } from '../../../services/reservas.service.ts'
 import type { ReservaEntregaResponse } from '../../../types/reserva.ts'
+import { LABELS_SITUACAO_OFERTA, LABELS_SITUACAO_RESERVA } from '../../../utils/labels.ts'
 
 type PendingReceptorAction =
   | { type: 'cancel'; reserva: ReservaEntregaResponse }
@@ -44,14 +45,14 @@ export function MinhasReservasReceptorPage() {
         showToast({
           variant: 'info',
           title: 'Reserva cancelada',
-          description: 'A reserva foi cancelada e a oferta retornou para DISPONIVEL.',
+          description: `A reserva foi cancelada e a oferta retornou para "${LABELS_SITUACAO_OFERTA.DISPONIVEL}".`,
         })
       } else {
         await concluirReserva(pendingAction.reserva.id)
         showToast({
           variant: 'success',
-          title: 'Retirada concluída',
-          description: 'A reserva e a oferta foram atualizadas para CONCLUIDA.',
+          title: 'Reserva finalizada',
+          description: `A reserva e a oferta foram atualizadas para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`,
         })
       }
       setPendingAction(null)
@@ -75,23 +76,21 @@ export function MinhasReservasReceptorPage() {
           <div>
             <h1 className="text-2xl font-bold text-ink">Minhas reservas</h1>
             <p className="mt-1 text-sm text-ink-secondary">
-              Acompanhe suas reservas, visualize os endereços completos de retirada e conclua
-              retiradas diretas.
+              Acompanhe suas reservas, visualize os contatos e endereços de retirada e finalize as
+              reservas concluídas.
             </p>
           </div>
-          <Link
-            to="/app/ofertas"
-            className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-          >
-            Buscar ofertas disponíveis
-          </Link>
+          <Button asChild variant="receptor">
+            <Link to="/app/ofertas">Buscar ofertas disponíveis</Link>
+          </Button>
         </div>
       </div>
 
       <InfoBanner tone="info">
         O cancelamento é permitido apenas antes do vínculo com um transportador (
-        <strong>AGUARDANDO_TRANSPORTE</strong> ou <strong>AGUARDANDO_RETIRADA</strong>) e devolve a
-        oferta para <strong>DISPONIVEL</strong>.
+        <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_TRANSPORTE}</strong> ou{' '}
+        <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_RETIRADA}</strong>) e devolve a oferta para{' '}
+        <strong>{LABELS_SITUACAO_OFERTA.DISPONIVEL}</strong>.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -104,12 +103,9 @@ export function MinhasReservasReceptorPage() {
           title="Nenhuma reserva realizada"
           description="Explore as ofertas disponíveis e reserve os itens necessários para sua organização."
           action={
-            <Link
-              to="/app/ofertas"
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-            >
-              Ver ofertas disponíveis
-            </Link>
+            <Button asChild variant="receptor">
+              <Link to="/app/ofertas">Ver ofertas disponíveis</Link>
+            </Button>
           }
         />
       ) : null}
@@ -120,7 +116,9 @@ export function MinhasReservasReceptorPage() {
             const canCancel =
               reserva.situacao === 'AGUARDANDO_TRANSPORTE' ||
               reserva.situacao === 'AGUARDANDO_RETIRADA'
-            const canConclude = reserva.situacao === 'AGUARDANDO_RETIRADA'
+            const canConclude =
+              reserva.situacao === 'AGUARDANDO_RETIRADA' ||
+              reserva.situacao === 'TRANSPORTE_VINCULADO'
 
             return (
               <ReservaCard
@@ -147,7 +145,7 @@ export function MinhasReservasReceptorPage() {
                           leftIcon={<CheckCircle2 className="h-4 w-4" />}
                           onClick={() => setPendingAction({ type: 'conclude', reserva })}
                         >
-                          Concluir retirada
+                          Finalizar reserva
                         </Button>
                       ) : null}
                     </>
@@ -164,15 +162,15 @@ export function MinhasReservasReceptorPage() {
         title={
           pendingAction?.type === 'cancel'
             ? 'Cancelar reserva?'
-            : 'Confirmar conclusão da retirada?'
+            : 'Confirmar finalização da reserva?'
         }
         description={
           pendingAction?.type === 'cancel'
-            ? `Ao cancelar a Reserva #${pendingAction.reserva.id}, a oferta voltará para a situação DISPONIVEL.`
-            : `Confirma que a retirada da Reserva #${pendingAction?.reserva.id ?? ''} foi realizada?`
+            ? `Ao cancelar a Reserva #${pendingAction.reserva.id}, a oferta voltará para a situação "${LABELS_SITUACAO_OFERTA.DISPONIVEL}".`
+            : `Confirma que a doação da Reserva #${pendingAction?.reserva.id ?? ''} foi concluída? A reserva passará para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`
         }
         confirmLabel={
-          pendingAction?.type === 'cancel' ? 'Confirmar cancelamento' : 'Confirmar conclusão'
+          pendingAction?.type === 'cancel' ? 'Confirmar cancelamento' : 'Confirmar finalização'
         }
         confirmVariant={pendingAction?.type === 'cancel' ? 'destructive' : 'receptor'}
         loading={processing}

@@ -89,7 +89,7 @@ export function RedefinirSenhaPage() {
     <div className="mx-auto max-w-md px-4 py-10 sm:py-14">
       <Card padding="lg">
         <div className="mb-6">
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-[10px] bg-surface-subtle text-ink">
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-button bg-surface-subtle text-ink">
             <KeyRound className="h-5 w-5" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-bold text-ink">Redefinir senha</h1>
@@ -113,18 +113,12 @@ export function RedefinirSenhaPage() {
                 'Este link de recuperação não é válido, já foi utilizado ou ultrapassou o prazo de 10 minutos.'}
             </InfoBanner>
             <div className="flex flex-col gap-2">
-              <Link
-                to="/recuperar-senha"
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-[#2B3544]"
-              >
-                Solicitar novo link
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex min-h-10 items-center justify-center rounded-[8px] border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-surface-subtle"
-              >
-                Voltar ao login
-              </Link>
+              <Button asChild>
+                <Link to="/recuperar-senha">Solicitar novo link</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link to="/login">Voltar ao login</Link>
+              </Button>
             </div>
           </div>
         ) : null}

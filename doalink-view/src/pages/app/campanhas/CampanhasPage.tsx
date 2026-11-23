@@ -5,6 +5,7 @@ import { EmptyState } from '../../../components/feedback/EmptyState.tsx'
 import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { CardListSkeleton } from '../../../components/feedback/Skeleton.tsx'
 import { Breadcrumbs } from '../../../components/layout/Breadcrumbs.tsx'
+import { Button } from '../../../components/ui/Button.tsx'
 import { Card } from '../../../components/ui/Card.tsx'
 import { Pagination } from '../../../components/ui/Pagination.tsx'
 import { Select } from '../../../components/ui/Select.tsx'
@@ -51,13 +52,9 @@ export function CampanhasPage() {
             </p>
           </div>
           {user?.tipoUsuario === 'RECEPTOR' ? (
-            <Link
-              to="/app/campanhas/nova"
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-            >
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              <span>Criar campanha</span>
-            </Link>
+            <Button asChild variant="receptor" leftIcon={<PlusCircle className="h-4 w-4" />}>
+              <Link to="/app/campanhas/nova">Criar campanha</Link>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -95,12 +92,9 @@ export function CampanhasPage() {
                 campanha={campanha}
                 variant="public"
                 actions={
-                  <Link
-                    to={`/app/campanhas/${campanha.id}`}
-                    className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                  >
-                    Ver campanha
-                  </Link>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link to={`/app/campanhas/${campanha.id}`}>Ver campanha</Link>
+                  </Button>
                 }
               />
             ))}

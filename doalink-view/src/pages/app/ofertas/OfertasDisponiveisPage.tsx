@@ -13,7 +13,6 @@ import { Pagination } from '../../../components/ui/Pagination.tsx'
 import { Select } from '../../../components/ui/Select.tsx'
 import { OfertaCard } from '../../../features/ofertas/OfertaCard.tsx'
 import { useAsyncResource } from '../../../hooks/useAsyncResource.ts'
-import { useAuth } from '../../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
 import { listarOfertasDisponiveis } from '../../../services/ofertas.service.ts'
 import { TIPO_ITEM_DOACAO, UFS_BRASIL, type TipoItemDoacao } from '../../../types/enums.ts'
@@ -28,7 +27,6 @@ const UF_OPTIONS = UFS_BRASIL.map((uf) => ({ value: uf, label: uf }))
 
 export function OfertasDisponiveisPage() {
   useDocumentTitle('Ofertas disponíveis')
-  const { user } = useAuth()
 
   const [categoria, setCategoria] = useState<TipoItemDoacao | ''>('')
   const [cidadeInput, setCidadeInput] = useState('')
@@ -86,36 +84,14 @@ export function OfertasDisponiveisPage() {
     <div className="space-y-6">
       <div>
         <Breadcrumbs items={[{ label: 'Painel', to: '/app' }, { label: 'Ofertas disponíveis' }]} />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-ink">Ofertas disponíveis</h1>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Consulte ofertas publicadas com situação disponível. Apenas cidade e UF são exibidos
-              antes da reserva.
-            </p>
-          </div>
-          {user?.tipoUsuario === 'DOADOR' ? (
-            <Link
-              to="/app/ofertas/nova"
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-doador-aa px-4 py-2 text-sm font-semibold text-white hover:bg-doador-hover"
-            >
-              Publicar oferta
-            </Link>
-          ) : null}
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Ofertas disponíveis</h1>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Consulte ofertas publicadas com situação disponível e reserve os itens necessários para
+            sua organização. Apenas cidade e UF são exibidos antes da reserva.
+          </p>
         </div>
       </div>
-
-      {user?.tipoUsuario === 'TRANSPORTADOR' ? (
-        <InfoBanner tone="info">
-          Como Transportador, você pode consultar a listagem geral de ofertas disponíveis, mas o
-          detalhamento individual (`GET /ofertas/{'{id}'}`) e o endereço completo são liberados
-          apenas quando a oferta é reservada e vinculada a você. Para assumir entregas, acesse{' '}
-          <Link to="/app/entregas-disponiveis" className="font-semibold text-ink underline">
-            Aguardando transporte
-          </Link>
-          .
-        </InfoBanner>
-      ) : null}
 
       <Card padding="sm">
         <form
@@ -162,8 +138,8 @@ export function OfertasDisponiveisPage() {
 
       {hasActiveFilters ? (
         <InfoBanner tone="info">
-          Os filtros da API são aplicados sobre cada página retornada. Caso não encontre itens nesta
-          página, navegue pelas páginas ou limpe os filtros.
+          Os resultados são apresentados por páginas. Caso não encontre o que procura nesta página,
+          avance para as próximas páginas ou ajuste os filtros selecionados.
         </InfoBanner>
       ) : null}
 
@@ -209,14 +185,9 @@ export function OfertasDisponiveisPage() {
                 oferta={oferta}
                 variant="public"
                 actions={
-                  user?.tipoUsuario === 'TRANSPORTADOR' ? null : (
-                    <Link
-                      to={`/app/ofertas/${oferta.id}`}
-                      className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                    >
-                      {user?.tipoUsuario === 'RECEPTOR' ? 'Ver e reservar' : 'Ver detalhes'}
-                    </Link>
-                  )
+                  <Button asChild variant="secondary" size="sm">
+                    <Link to={`/app/ofertas/${oferta.id}`}>Ver e reservar</Link>
+                  </Button>
                 }
               />
             ))}

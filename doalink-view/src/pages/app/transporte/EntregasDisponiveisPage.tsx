@@ -75,9 +75,9 @@ export function EntregasDisponiveisPage() {
       </div>
 
       <InfoBanner tone="info">
-        A ordem automática de paradas e rotas via mapas ainda não está disponível na API. Você pode
-        vincular múltiplas entregas compatíveis à mesma disponibilidade respeitando o saldo de
-        capacidade.
+        Você pode vincular múltiplas entregas compatíveis a uma mesma disponibilidade de transporte,
+        respeitando o saldo de capacidade. A sugestão automática de rotas e paradas por mapa estará
+        disponível em uma atualização futura.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}

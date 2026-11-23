@@ -1,5 +1,6 @@
 import { ArrowLeft, Compass } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '../../components/ui/Button.tsx'
 import { Card } from '../../components/ui/Card.tsx'
 import { useAuth } from '../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -23,13 +24,11 @@ export function NotFoundPage() {
           O endereço acessado não existe ou foi movido. Verifique a URL ou retorne para o início.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            to={user ? '/app' : '/'}
-            className="inline-flex min-h-10 items-center gap-2 rounded-[8px] bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-[#2B3544]"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>{user ? 'Ir para o painel' : 'Ir para o início'}</span>
-          </Link>
+          <Button asChild leftIcon={<ArrowLeft className="h-4 w-4" />}>
+            <Link to={user ? '/app' : '/'}>
+              {user ? 'Ir para o painel' : 'Ir para o início'}
+            </Link>
+          </Button>
         </div>
       </Card>
     </div>

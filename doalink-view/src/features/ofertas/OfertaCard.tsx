@@ -1,5 +1,5 @@
-import { Calendar, MapPin, Package, User } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Building2, Calendar, Mail, MapPin, Package, Phone, User } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { Badge } from '../../components/ui/Badge.tsx'
 import { Card } from '../../components/ui/Card.tsx'
 import { StatusBadge } from '../../components/ui/StatusBadge.tsx'
@@ -11,6 +11,7 @@ import {
   formatarQuantidade,
 } from '../../utils/formatters.ts'
 import { LABELS_CATEGORIA_ITEM, SIGLAS_UNIDADE } from '../../utils/labels.ts'
+import { formatarTelefone } from '../../utils/masks.ts'
 
 interface OfertaCardProps {
   oferta: OfertaDoacaoResponse
@@ -19,6 +20,8 @@ interface OfertaCardProps {
 }
 
 export function OfertaCard({ oferta, variant = 'public', actions }: OfertaCardProps) {
+  const [expandedItemId, setExpandedItemId] = useState<number | null>(null)
+
   const localTexto =
     variant === 'owner'
       ? oferta.localRetirada
@@ -40,7 +43,9 @@ export function OfertaCard({ oferta, variant = 'public', actions }: OfertaCardPr
           {oferta.doador ? (
             <div className="flex items-center gap-2 text-ink">
               <User className="h-4 w-4 shrink-0 text-ink-secondary" aria-hidden="true" />
-              <span className="font-medium truncate">{oferta.doador.nome}</span>
+              <span className="font-medium truncate" title={oferta.doador.nome}>
+                {oferta.doador.nome}
+              </span>
             </div>
           ) : null}
 
@@ -63,22 +68,35 @@ export function OfertaCard({ oferta, variant = 'public', actions }: OfertaCardPr
             </span>
           </p>
           <ul className="space-y-1.5">
-            {oferta.itens.slice(0, 3).map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-2 rounded-[8px] bg-canvas px-2.5 py-1.5 text-xs"
-              >
-                <span className="min-w-0 truncate text-ink">
-                  <span className="font-medium">{item.descricao}</span>
-                  <span className="ml-1.5 text-ink-muted">
-                    ({LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]})
-                  </span>
-                </span>
-                <Badge tone="neutral" className="shrink-0">
-                  {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
-                </Badge>
-              </li>
-            ))}
+            {oferta.itens.slice(0, 3).map((item) => {
+              const categoriaLabel = LABELS_CATEGORIA_ITEM[item.tipoItemDoacao]
+              const itemTextoCompleto = `${item.descricao} (${categoriaLabel})`
+              const isExpanded = expandedItemId === item.id
+
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-start justify-between gap-2 rounded-button bg-canvas px-2.5 py-1.5 text-xs"
+                >
+                  <button
+                    type="button"
+                    title={itemTextoCompleto}
+                    aria-expanded={isExpanded}
+                    aria-label={`${itemTextoCompleto}. Toque para ${isExpanded ? 'recolher' : 'ver nome completo'}`}
+                    onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                    className={`min-w-0 flex-1 text-left text-ink cursor-pointer rounded-xs ${
+                      isExpanded ? 'whitespace-normal break-words' : 'truncate'
+                    }`}
+                  >
+                    <span className="font-medium">{item.descricao}</span>
+                    <span className="ml-1.5 text-ink-muted">({categoriaLabel})</span>
+                  </button>
+                  <Badge tone="neutral" className="shrink-0">
+                    {formatarQuantidade(item.quantidade)} {SIGLAS_UNIDADE[item.tipoUnidade]}
+                  </Badge>
+                </li>
+              )
+            })}
           </ul>
           {oferta.itens.length > 3 ? (
             <p className="mt-1.5 text-xs font-medium text-ink-secondary">
@@ -87,6 +105,28 @@ export function OfertaCard({ oferta, variant = 'public', actions }: OfertaCardPr
             </p>
           ) : null}
         </div>
+
+        {variant === 'owner' && oferta.receptor ? (
+          <div className="rounded-button border border-receptor-border bg-receptor-soft/60 p-3 space-y-1 text-xs">
+            <p className="font-semibold text-receptor-aa">Reservada pela ONG</p>
+            <p className="flex items-center gap-1.5 font-medium text-ink">
+              <Building2 className="h-3.5 w-3.5 shrink-0 text-receptor-aa" aria-hidden="true" />
+              <span className="truncate" title={oferta.receptor.nome}>
+                {oferta.receptor.nome}
+              </span>
+            </p>
+            <p className="flex items-center gap-1.5 text-ink-secondary break-all">
+              <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>{oferta.receptor.email}</span>
+            </p>
+            {oferta.receptor.telefone ? (
+              <p className="flex items-center gap-1.5 text-ink-secondary">
+                <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>{formatarTelefone(oferta.receptor.telefone)}</span>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {actions ? (

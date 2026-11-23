@@ -85,7 +85,7 @@ export function LoginPage() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-10 sm:py-14">
       <Card padding="lg">
         <div className="mb-6">
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-[10px] bg-surface-subtle text-ink">
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-button bg-surface-subtle text-ink">
             <LogIn className="h-5 w-5" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-bold text-ink">Entrar no DoaLink</h1>

@@ -6,6 +6,7 @@ import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { InfoBanner } from '../../../components/feedback/InfoBanner.tsx'
 import { CardListSkeleton } from '../../../components/feedback/Skeleton.tsx'
 import { Breadcrumbs } from '../../../components/layout/Breadcrumbs.tsx'
+import { Button } from '../../../components/ui/Button.tsx'
 import { NecessidadeCard } from '../../../features/necessidades/NecessidadeCard.tsx'
 import { useAsyncResource } from '../../../hooks/useAsyncResource.ts'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
@@ -28,19 +29,15 @@ export function MinhasNecessidadesPage() {
               Necessidades registradas pela sua organização.
             </p>
           </div>
-          <Link
-            to="/app/necessidades/nova"
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-          >
-            <PlusCircle className="h-4 w-4" aria-hidden="true" />
-            <span>Nova necessidade</span>
-          </Link>
+          <Button asChild variant="receptor" leftIcon={<PlusCircle className="h-4 w-4" />}>
+            <Link to="/app/necessidades/nova">Nova necessidade</Link>
+          </Button>
         </div>
       </div>
 
       <InfoBanner tone="info">
-        Conforme o contrato atual da API, necessidades registradas não possuem edição ou
-        cancelamento após o envio.
+        As opções para editar ou cancelar necessidades registradas estarão disponíveis em uma
+        atualização futura. Confira atentamente os dados antes de publicar uma nova necessidade.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -53,12 +50,9 @@ export function MinhasNecessidadesPage() {
           title="Nenhuma necessidade registrada"
           description="Publique os itens que sua ONG precisa receber para dar visibilidade aos doadores."
           action={
-            <Link
-              to="/app/necessidades/nova"
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-            >
-              Registrar primeira necessidade
-            </Link>
+            <Button asChild variant="receptor">
+              <Link to="/app/necessidades/nova">Registrar primeira necessidade</Link>
+            </Button>
           }
         />
       ) : null}
@@ -71,12 +65,9 @@ export function MinhasNecessidadesPage() {
               necessidade={nec}
               variant="owner"
               actions={
-                <Link
-                  to={`/app/necessidades/${nec.id}`}
-                  className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                >
-                  Detalhes
-                </Link>
+                <Button asChild variant="secondary" size="sm">
+                  <Link to={`/app/necessidades/${nec.id}`}>Detalhes</Link>
+                </Button>
               }
             />
           ))}

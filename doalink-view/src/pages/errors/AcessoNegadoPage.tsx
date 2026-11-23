@@ -1,5 +1,6 @@
 import { ArrowLeft, ShieldAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '../../components/ui/Button.tsx'
 import { Card } from '../../components/ui/Card.tsx'
 import { useAuth } from '../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -22,13 +23,11 @@ export function AcessoNegadoPage() {
           Seu perfil atual não possui permissão para acessar esta área ou executar esta operação.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            to={user ? '/app' : '/'}
-            className="inline-flex min-h-10 items-center gap-2 rounded-[8px] bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-[#2B3544]"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>{user ? 'Voltar ao painel' : 'Voltar à página inicial'}</span>
-          </Link>
+          <Button asChild leftIcon={<ArrowLeft className="h-4 w-4" />}>
+            <Link to={user ? '/app' : '/'}>
+              {user ? 'Voltar ao painel' : 'Voltar à página inicial'}
+            </Link>
+          </Button>
         </div>
       </Card>
     </div>

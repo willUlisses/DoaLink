@@ -6,10 +6,12 @@ import { ErrorState } from '../../../components/feedback/ErrorState.tsx'
 import { InfoBanner } from '../../../components/feedback/InfoBanner.tsx'
 import { CardListSkeleton } from '../../../components/feedback/Skeleton.tsx'
 import { Breadcrumbs } from '../../../components/layout/Breadcrumbs.tsx'
+import { Button } from '../../../components/ui/Button.tsx'
 import { CampanhaCard } from '../../../features/campanhas/CampanhaCard.tsx'
 import { useAsyncResource } from '../../../hooks/useAsyncResource.ts'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle.ts'
 import { listarMinhasCampanhas } from '../../../services/campanhas.service.ts'
+import { LABELS_SITUACAO_CAMPANHA } from '../../../utils/labels.ts'
 
 export function MinhasCampanhasPage() {
   useDocumentTitle('Minhas campanhas')
@@ -28,20 +30,16 @@ export function MinhasCampanhasPage() {
               Campanhas cadastradas pela sua organização receptora.
             </p>
           </div>
-          <Link
-            to="/app/campanhas/nova"
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-          >
-            <PlusCircle className="h-4 w-4" aria-hidden="true" />
-            <span>Nova campanha</span>
-          </Link>
+          <Button asChild variant="receptor" leftIcon={<PlusCircle className="h-4 w-4" />}>
+            <Link to="/app/campanhas/nova">Nova campanha</Link>
+          </Button>
         </div>
       </div>
 
       <InfoBanner tone="info">
-        A API atual permite criar e consultar campanhas emergenciais (iniciadas como{' '}
-        <strong>ATIVA</strong>). Endpoints para editar dados, encerrar ou cancelar uma campanha
-        ainda não existem no back-end.
+        Novas campanhas emergenciais são publicadas com situação{' '}
+        <strong>{LABELS_SITUACAO_CAMPANHA.ATIVA}</strong>. As opções para editar, encerrar ou
+        cancelar campanhas estarão disponíveis em uma atualização futura.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -54,12 +52,9 @@ export function MinhasCampanhasPage() {
           title="Nenhuma campanha criada"
           description="Crie uma campanha emergencial para mobilizar doadores e transportadores em situações críticas."
           action={
-            <Link
-              to="/app/campanhas/nova"
-              className="inline-flex min-h-10 items-center justify-center rounded-[8px] bg-receptor-aa px-4 py-2 text-sm font-semibold text-white hover:bg-receptor-hover"
-            >
-              Criar campanha emergencial
-            </Link>
+            <Button asChild variant="receptor">
+              <Link to="/app/campanhas/nova">Criar campanha emergencial</Link>
+            </Button>
           }
         />
       ) : null}
@@ -72,12 +67,14 @@ export function MinhasCampanhasPage() {
               campanha={campanha}
               variant="owner"
               actions={
-                <Link
-                  to={`/app/campanhas/${campanha.id}`}
-                  className="inline-flex min-h-9 items-center justify-center rounded-[8px] border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                >
-                  Detalhes
-                </Link>
+                <Button asChild variant="secondary" size="sm">
+                  <Link
+                    to={`/app/campanhas/${campanha.id}`}
+                    state={{ from: '/app/minhas-campanhas' }}
+                  >
+                    Detalhes
+                  </Link>
+                </Button>
               }
             />
           ))}
