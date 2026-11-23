@@ -23,5 +23,7 @@ public interface DisponibilidadeTransporteRepository extends JpaRepository<Dispo
 
     @EntityGraph(attributePaths = "transportador")
     Optional<DisponibilidadeTransporte> findWithTransportadorById(Long id);
+
+    boolean existsByTransportadorId(Long transportadorId);
 }
 

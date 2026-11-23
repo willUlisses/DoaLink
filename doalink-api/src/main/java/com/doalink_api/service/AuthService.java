@@ -128,6 +128,7 @@ public class AuthService {
         u.setDocumento(doc);
         u.setNome(nome.trim());
         u.setEmail(email);
+        u.setEmailContato(email);
         u.setSenha(passwordEncoder.encode(senha));
     }
 
