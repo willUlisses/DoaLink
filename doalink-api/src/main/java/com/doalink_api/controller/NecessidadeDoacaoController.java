@@ -46,13 +46,18 @@ public class NecessidadeDoacaoController implements INecessidadeDoacaoController
     @Override
     public ResponseEntity<Page<NecessidadeDoacaoResponse>> listar(
             @RequestParam(required = false) SituacaoNecessidade situacao,
-            Pageable pageable) {
+            Pageable pageable,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
         SituacaoNecessidade filtro = situacao != null ? situacao : SituacaoNecessidade.ABERTA;
-        return ResponseEntity.ok(necessidadeService.listarPorSituacao(filtro, pageable));
+        Long usuarioId = usuario != null ? usuario.id() : null;
+        return ResponseEntity.ok(necessidadeService.listarPorSituacao(filtro, pageable, usuarioId));
     }
 
     @Override
-    public ResponseEntity<NecessidadeDoacaoResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(necessidadeService.buscarPorId(id));
+    public ResponseEntity<NecessidadeDoacaoResponse> buscarPorId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Long usuarioId = usuario != null ? usuario.id() : null;
+        return ResponseEntity.ok(necessidadeService.buscarPorId(id, usuarioId));
     }
 }

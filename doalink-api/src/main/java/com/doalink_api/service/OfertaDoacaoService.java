@@ -1,6 +1,7 @@
 package com.doalink_api.service;
 
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
+import com.doalink_api.dtos.response.ContatoResponse;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
 import com.doalink_api.entities.DisponibilidadeTransporte;
 import com.doalink_api.entities.OfertaDoacao;
@@ -24,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,9 +55,24 @@ public class OfertaDoacaoService {
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
     public List<OfertaDoacaoResponse> listarMinhas(Long usuarioId) {
-        return ofertaRepository.findByDoadorIdOrderByCriadoEmDesc(usuarioId)
+        List<OfertaDoacao> ofertas = ofertaRepository.findByDoadorIdOrderByCriadoEmDesc(usuarioId);
+        if (ofertas.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> ofertaIds = ofertas.stream().map(OfertaDoacao::getId).toList();
+        Map<Long, ContatoResponse> receptorPorOferta = reservaRepository
+                .findByOfertaIdInAndSituacaoNot(ofertaIds, SituacaoReservaEntrega.CANCELADA)
                 .stream()
-                .map(OfertaDoacaoResponse::from)
+                .filter(r -> r.getOferta() != null && r.getReceptor() != null)
+                .collect(Collectors.toMap(
+                        r -> r.getOferta().getId(),
+                        r -> ContatoResponse.from(r.getReceptor()),
+                        (primeiro, segundo) -> primeiro
+                ));
+
+        return ofertas.stream()
+                .map(oferta -> OfertaDoacaoResponse.from(oferta, true, receptorPorOferta.get(oferta.getId())))
                 .toList();
     }
 
@@ -67,6 +85,20 @@ public class OfertaDoacaoService {
             TipoItemDoacao categoria,
             String cidade,
             String estado) {
+        return listarDisponiveis(pageable, categoria, cidade, estado, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OfertaDoacaoResponse> listarDisponiveis(
+            Pageable pageable,
+            TipoItemDoacao categoria,
+            String cidade,
+            String estado,
+            Long usuarioId) {
+
+        if (usuarioId != null && doadorRepository.existsById(usuarioId)) {
+            throw new ForbiddenException("Doadores só podem visualizar suas próprias ofertas");
+        }
 
         // Quando nenhum filtro é informado busca todas as DISPONIVEL
         if (categoria == null && cidade == null && estado == null) {
@@ -97,9 +129,8 @@ public class OfertaDoacaoService {
 
         boolean isDono = oferta.getDoador() != null && oferta.getDoador().getId().equals(usuarioId);
 
-        Optional<ReservaEntrega> reservaAtiva = isDono
-                ? Optional.empty()
-                : reservaRepository.findFirstByOfertaIdAndSituacaoNot(id, SituacaoReservaEntrega.CANCELADA);
+        Optional<ReservaEntrega> reservaAtiva = reservaRepository
+                .findFirstByOfertaIdAndSituacaoNot(id, SituacaoReservaEntrega.CANCELADA);
 
         boolean isReceptorDaReserva = reservaAtiva
                 .map(r -> r.getReceptor() != null && r.getReceptor().getId().equals(usuarioId))
@@ -112,14 +143,31 @@ public class OfertaDoacaoService {
                 .map(tid -> tid.equals(usuarioId))
                 .orElse(false);
 
-        if (!isTransportadorVinculado
-                && transportadorRepository.existsById(usuarioId)
-                && oferta.getSituacao() != SituacaoOferta.RESERVADA) {
+        if (!isDono && doadorRepository.existsById(usuarioId)) {
+            throw new ForbiddenException("Doadores só podem visualizar suas próprias ofertas");
+        }
+
+        boolean isTransportador = !isTransportadorVinculado && transportadorRepository.existsById(usuarioId);
+        if (isTransportador && oferta.getSituacao() != SituacaoOferta.RESERVADA) {
             throw new ForbiddenException(
                     "Transportadores só podem visualizar ofertas RESERVADAS ou vinculadas a eles");
         }
 
-        return OfertaDoacaoResponse.from(oferta, isDono || isReceptorDaReserva || isTransportadorVinculado);
+        if (!isDono
+                && !isReceptorDaReserva
+                && !isTransportadorVinculado
+                && !isTransportador
+                && oferta.getSituacao() != SituacaoOferta.DISPONIVEL) {
+            throw new ForbiddenException(
+                    "Esta oferta não está disponível para visualização por outra organização");
+        }
+
+        boolean podeVerDetalhesCompletos = isDono || isReceptorDaReserva || isTransportadorVinculado;
+        ContatoResponse receptorContato = podeVerDetalhesCompletos
+                ? reservaAtiva.map(ReservaEntrega::getReceptor).map(ContatoResponse::from).orElse(null)
+                : null;
+
+        return OfertaDoacaoResponse.from(oferta, podeVerDetalhesCompletos, receptorContato);
     }
 
     // -------------------------------------------------------------------------

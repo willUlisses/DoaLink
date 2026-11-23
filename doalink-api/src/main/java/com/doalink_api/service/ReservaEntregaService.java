@@ -44,15 +44,27 @@ public class ReservaEntregaService {
 
         oferta.setSituacao(SituacaoOferta.RESERVADA);
 
+        boolean ofertaPossuiEndereco = possuiEndereco(oferta.getLocalRetirada());
+        boolean precisaTransporte = ofertaPossuiEndereco && Boolean.TRUE.equals(req.precisaTransporte());
+
         ReservaEntrega reserva = new ReservaEntrega();
         reserva.setOferta(oferta);
         reserva.setReceptor(receptor);
-        reserva.setPrecisaTransporte(req.precisaTransporte());
-        reserva.setSituacao(req.precisaTransporte()
+        reserva.setPrecisaTransporte(precisaTransporte);
+        reserva.setSituacao(precisaTransporte
                 ? SituacaoReservaEntrega.AGUARDANDO_TRANSPORTE
                 : SituacaoReservaEntrega.AGUARDANDO_RETIRADA);
 
         return ReservaEntregaResponse.from(reservaRepository.save(reserva), true);
+    }
+
+    private boolean possuiEndereco(Endereco endereco) {
+        if (endereco == null) {
+            return false;
+        }
+        boolean temLogradouro = endereco.getLogradouro() != null && !endereco.getLogradouro().isBlank();
+        boolean temCidade = endereco.getCidade() != null && !endereco.getCidade().isBlank();
+        return temLogradouro || temCidade;
     }
 
     @Transactional(readOnly = true)
@@ -145,9 +157,14 @@ public class ReservaEntregaService {
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada: " + reservaId));
 
         if (reserva.getSituacao() == SituacaoReservaEntrega.TRANSPORTE_VINCULADO) {
-            Long transportadorId = reserva.getDisponibilidade().getTransportador().getId();
-            if (!transportadorId.equals(usuarioId)) {
-                throw new ForbiddenException("Apenas o transportador vinculado pode concluir esta entrega");
+            boolean isReceptorDono = reserva.getReceptor() != null
+                    && reserva.getReceptor().getId().equals(usuarioId);
+            boolean isTransportadorVinculado = reserva.getDisponibilidade() != null
+                    && reserva.getDisponibilidade().getTransportador() != null
+                    && reserva.getDisponibilidade().getTransportador().getId().equals(usuarioId);
+            if (!isReceptorDono && !isTransportadorVinculado) {
+                throw new ForbiddenException(
+                        "Apenas o receptor da reserva ou o transportador vinculado podem concluir esta entrega");
             }
         } else if (reserva.getSituacao() == SituacaoReservaEntrega.AGUARDANDO_RETIRADA) {
             if (!reserva.getReceptor().getId().equals(usuarioId)) {

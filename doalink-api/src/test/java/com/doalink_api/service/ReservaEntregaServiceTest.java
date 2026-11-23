@@ -411,8 +411,8 @@ class ReservaEntregaServiceTest {
     }
 
     @Test
-    @DisplayName("concluir: receptor em TRANSPORTE_VINCULADO recebe ForbiddenException")
-    void concluir_receptorEmTransporteVinculado_deveLancarForbidden() {
+    @DisplayName("concluir: receptor dono conclui em TRANSPORTE_VINCULADO")
+    void concluir_receptorEmTransporteVinculado_deveConcluir() {
         ReservaEntrega r = new ReservaEntrega();
         r.setId(50L);
         r.setOferta(oferta);
@@ -421,8 +421,57 @@ class ReservaEntregaServiceTest {
         r.setSituacao(SituacaoReservaEntrega.TRANSPORTE_VINCULADO);
         when(reservaRepository.findWithDetalhesById(50L)).thenReturn(Optional.of(r));
 
-        assertThatThrownBy(() -> service.concluir(2L, 50L))
+        service.concluir(2L, 50L);
+
+        assertThat(r.getSituacao()).isEqualTo(SituacaoReservaEntrega.CONCLUIDA);
+        assertThat(oferta.getSituacao()).isEqualTo(SituacaoOferta.CONCLUIDA);
+    }
+
+    @Test
+    @DisplayName("concluir: terceiro não vinculado em TRANSPORTE_VINCULADO recebe ForbiddenException")
+    void concluir_terceiroEmTransporteVinculado_deveLancarForbidden() {
+        ReservaEntrega r = new ReservaEntrega();
+        r.setId(50L);
+        r.setOferta(oferta);
+        r.setReceptor(receptor);
+        r.setDisponibilidade(disponibilidade);
+        r.setSituacao(SituacaoReservaEntrega.TRANSPORTE_VINCULADO);
+        when(reservaRepository.findWithDetalhesById(50L)).thenReturn(Optional.of(r));
+
+        assertThatThrownBy(() -> service.concluir(999L, 50L))
                 .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("concluir: reserva em AGUARDANDO_TRANSPORTE recebe ConflictException")
+    void concluir_reservaAguardandoTransporte_deveLancarConflict() {
+        ReservaEntrega r = new ReservaEntrega();
+        r.setId(50L);
+        r.setReceptor(receptor);
+        r.setSituacao(SituacaoReservaEntrega.AGUARDANDO_TRANSPORTE);
+        when(reservaRepository.findWithDetalhesById(50L)).thenReturn(Optional.of(r));
+
+        assertThatThrownBy(() -> service.concluir(2L, 50L))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    @DisplayName("reservar: oferta sem endereço não passa por AGUARDANDO_TRANSPORTE e vai direto para AGUARDANDO_RETIRADA")
+    void reservar_ofertaSemEndereco_deveIrDiretoParaAguardandoRetirada() {
+        oferta.setLocalRetirada(null);
+        when(receptorRepository.findById(2L)).thenReturn(Optional.of(receptor));
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(reservaRepository.save(any())).thenAnswer(inv -> {
+            ReservaEntrega r = inv.getArgument(0);
+            r.setId(52L);
+            return r;
+        });
+
+        ReservaEntregaResponse resp = service.reservar(2L, new ReservaEntregaRequest(10L, true));
+
+        assertThat(resp.situacao()).isEqualTo(SituacaoReservaEntrega.AGUARDANDO_RETIRADA);
+        assertThat(resp.precisaTransporte()).isFalse();
+        assertThat(oferta.getSituacao()).isEqualTo(SituacaoOferta.RESERVADA);
     }
 
     @Test

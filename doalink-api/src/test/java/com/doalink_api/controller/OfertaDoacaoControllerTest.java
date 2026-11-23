@@ -78,12 +78,15 @@ class OfertaDoacaoControllerTest {
         void setUp() {
                 // InheritableThreadLocal garante que o SecurityContext seja visível
                 // na thread do dispatcher do MockMvc (que é uma thread filha)
+                SecurityContextHolder.clearContext();
                 SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
                 mockMvc = MockMvcBuilders
                                 .standaloneSetup(new OfertaDoacaoController(ofertaService))
                                 .setControllerAdvice(new GlobalExceptionHandler())
-                                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                                .setCustomArgumentResolvers(
+                                                new AuthenticationPrincipalArgumentResolver(),
+                                                new org.springframework.data.web.PageableHandlerMethodArgumentResolver())
                                 .build();
         }
 
@@ -197,6 +200,16 @@ class OfertaDoacaoControllerTest {
                 mockMvc.perform(get("/ofertas/minhas").with(AS_DOADOR))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].id").value(10));
+        }
+
+        @Test
+        @DisplayName("GET /ofertas: doador tentando listar ofertas gerais → 403 Forbidden")
+        void listarDisponiveis_doador_deveRetornar403() throws Exception {
+                when(ofertaService.listarDisponiveis(any(), isNull(), isNull(), isNull(), eq(1L)))
+                                .thenThrow(new ForbiddenException("Doadores só podem visualizar suas próprias ofertas"));
+
+                mockMvc.perform(get("/ofertas").with(AS_DOADOR))
+                                .andExpect(status().isForbidden());
         }
 
         // -------------------------------------------------------------------------

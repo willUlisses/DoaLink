@@ -65,14 +65,16 @@ public interface IOfertaDoacaoController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Página de ofertas retornada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Parâmetros de filtro ou paginação inválidos"),
-            @ApiResponse(responseCode = "401", description = "Não autenticado")
+            @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Apenas receptores podem listar ofertas disponíveis")
     })
     @GetMapping
     ResponseEntity<Page<OfertaDoacaoResponse>> listarDisponiveis(
             @ParameterObject @PageableDefault(size = 20, sort = "criadoEm") Pageable pageable,
             @Parameter(description = "Filtro opcional por tipo de item") @RequestParam(required = false) TipoItemDoacao categoria,
             @Parameter(description = "Filtro opcional por cidade") @RequestParam(required = false) String cidade,
-            @Parameter(description = "Filtro opcional por UF do estado (ex: SP)") @RequestParam(required = false) String estado);
+            @Parameter(description = "Filtro opcional por UF do estado (ex: SP)") @RequestParam(required = false) String estado,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 
     @Operation(
             summary = "Buscar oferta de doação por ID",

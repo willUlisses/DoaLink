@@ -65,12 +65,14 @@ public interface INecessidadeDoacaoController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Página de necessidades retornada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Parâmetros de filtro ou paginação inválidos"),
-            @ApiResponse(responseCode = "401", description = "Não autenticado")
+            @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Apenas doadores podem listar necessidades gerais")
     })
     @GetMapping
     ResponseEntity<Page<NecessidadeDoacaoResponse>> listar(
             @Parameter(description = "Filtro opcional por situação (padrão: ABERTA)") @RequestParam(required = false) SituacaoNecessidade situacao,
-            @ParameterObject @PageableDefault(size = 20, sort = "criadoEm") Pageable pageable);
+            @ParameterObject @PageableDefault(size = 20, sort = "criadoEm") Pageable pageable,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 
     @Operation(
             summary = "Buscar necessidade de doação por ID",
@@ -83,9 +85,11 @@ public interface INecessidadeDoacaoController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = NecessidadeDoacaoResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Receptores só podem visualizar suas próprias necessidades"),
             @ApiResponse(responseCode = "404", description = "Necessidade não encontrada")
     })
     @GetMapping("/{id}")
     ResponseEntity<NecessidadeDoacaoResponse> buscarPorId(
-            @Parameter(description = "ID da necessidade de doação") @PathVariable Long id);
+            @Parameter(description = "ID da necessidade de doação") @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 }

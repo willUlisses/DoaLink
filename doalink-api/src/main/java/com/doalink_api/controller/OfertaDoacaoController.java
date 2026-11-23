@@ -48,8 +48,10 @@ public class OfertaDoacaoController implements IOfertaDoacaoController {
             Pageable pageable,
             @RequestParam(required = false) TipoItemDoacao categoria,
             @RequestParam(required = false) String cidade,
-            @RequestParam(required = false) String estado) {
-        return ResponseEntity.ok(ofertaService.listarDisponiveis(pageable, categoria, cidade, estado));
+            @RequestParam(required = false) String estado,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Long usuarioId = usuario != null ? usuario.id() : null;
+        return ResponseEntity.ok(ofertaService.listarDisponiveis(pageable, categoria, cidade, estado, usuarioId));
     }
 
     @Override

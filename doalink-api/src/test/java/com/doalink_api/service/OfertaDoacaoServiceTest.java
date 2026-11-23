@@ -8,6 +8,7 @@ import com.doalink_api.entities.Doador;
 import com.doalink_api.entities.DisponibilidadeTransporte;
 import com.doalink_api.entities.ItemDoacao;
 import com.doalink_api.entities.OfertaDoacao;
+import com.doalink_api.entities.Receptor;
 import com.doalink_api.entities.ReservaEntrega;
 import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.enums.SituacaoOferta;
@@ -141,6 +142,65 @@ class OfertaDoacaoServiceTest {
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(OfertaDoacaoResponse::id).containsExactly(10L, 11L);
+    }
+
+    @Test
+    @DisplayName("listarMinhas: deve incluir contato da ONG quando oferta estiver reservada")
+    void listarMinhas_deveIncluirContatoReceptorQuandoReservada() {
+        OfertaDoacao o1 = ofertaComNItens(doador, 10L, 1);
+        o1.setSituacao(SituacaoOferta.RESERVADA);
+
+        Receptor receptor = new Receptor();
+        receptor.setId(5L);
+        receptor.setNome("ONG Solidária");
+        receptor.setEmail("contato@ongsolidaria.org");
+        receptor.setTelefone("11977778888");
+
+        ReservaEntrega reserva = new ReservaEntrega();
+        reserva.setOferta(o1);
+        reserva.setReceptor(receptor);
+        reserva.setSituacao(SituacaoReservaEntrega.AGUARDANDO_RETIRADA);
+
+        when(ofertaRepository.findByDoadorIdOrderByCriadoEmDesc(1L)).thenReturn(List.of(o1));
+        when(reservaRepository.findByOfertaIdInAndSituacaoNot(List.of(10L), SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(List.of(reserva));
+
+        List<OfertaDoacaoResponse> result = service.listarMinhas(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).receptor()).isNotNull();
+        assertThat(result.get(0).receptor().nome()).isEqualTo("ONG Solidária");
+        assertThat(result.get(0).receptor().email()).isEqualTo("contato@ongsolidaria.org");
+        assertThat(result.get(0).receptor().telefone()).isEqualTo("11977778888");
+    }
+
+    @Test
+    @DisplayName("buscarPorId: doador dono visualiza contato da ONG quando oferta tem reserva ativa")
+    void buscarPorId_donoVisualizaContatoReceptor() {
+        OfertaDoacao oferta = ofertaComNItens(doador, 10L, 1);
+        oferta.setSituacao(SituacaoOferta.RESERVADA);
+
+        Receptor receptor = new Receptor();
+        receptor.setId(5L);
+        receptor.setNome("ONG Esperança");
+        receptor.setEmail("ong@esperanca.org");
+        receptor.setTelefone(null);
+
+        ReservaEntrega reserva = new ReservaEntrega();
+        reserva.setOferta(oferta);
+        reserva.setReceptor(receptor);
+        reserva.setSituacao(SituacaoReservaEntrega.AGUARDANDO_RETIRADA);
+
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.of(reserva));
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 1L);
+
+        assertThat(resp.receptor()).isNotNull();
+        assertThat(resp.receptor().nome()).isEqualTo("ONG Esperança");
+        assertThat(resp.receptor().email()).isEqualTo("ong@esperanca.org");
+        assertThat(resp.receptor().telefone()).isNull();
     }
 
     // -------------------------------------------------------------------------
@@ -280,6 +340,58 @@ class OfertaDoacaoServiceTest {
         when(transportadorRepository.existsById(2L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.buscarPorId(10L, 2L))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("listarDisponiveis: doador não pode listar ofertas gerais")
+    void listarDisponiveis_doador_deveLancarForbidden() {
+        when(doadorRepository.existsById(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.listarDisponiveis(
+                org.springframework.data.domain.PageRequest.of(0, 10), null, null, null, 1L))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("buscarPorId: doador tentando visualizar oferta de outro doador deve receber Forbidden")
+    void buscarPorId_outroDoador_deveLancarForbidden() {
+        Doador outro = new Doador("98765432100", "Maria", "maria@email.com", "hash", null, TipoPessoa.FISICA);
+        outro.setId(2L);
+        OfertaDoacao oferta = ofertaComNItens(outro, 10L, 1);
+
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
+        when(doadorRepository.existsById(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.buscarPorId(10L, 1L))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("buscarPorId: ONG visualiza oferta DISPONIVEL sem contato completo e bloqueia oferta reservada por outra ONG")
+    void buscarPorId_receptor_regrasDeVisualizacao() {
+        OfertaDoacao ofertaDisponivel = ofertaComNItens(doador, 10L, 1);
+        when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(ofertaDisponivel));
+        when(doadorRepository.existsById(5L)).thenReturn(false);
+        when(transportadorRepository.existsById(5L)).thenReturn(false);
+
+        OfertaDoacaoResponse resp = service.buscarPorId(10L, 5L);
+        assertThat(resp.doador().nome()).isEqualTo("João Silva");
+        assertThat(resp.doador().email()).isNull();
+
+        OfertaDoacao ofertaDeOutraOng = ofertaComNItens(doador, 11L, 1);
+        ofertaDeOutraOng.setSituacao(SituacaoOferta.RESERVADA);
+        Receptor outraOng = new Receptor();
+        outraOng.setId(9L);
+        ReservaEntrega reservaOutraOng = new ReservaEntrega();
+        reservaOutraOng.setOferta(ofertaDeOutraOng);
+        reservaOutraOng.setReceptor(outraOng);
+
+        when(ofertaRepository.findWithItensById(11L)).thenReturn(Optional.of(ofertaDeOutraOng));
+        when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(11L, SituacaoReservaEntrega.CANCELADA))
+                .thenReturn(Optional.of(reservaOutraOng));
+
+        assertThatThrownBy(() -> service.buscarPorId(11L, 5L))
                 .isInstanceOf(ForbiddenException.class);
     }
 
