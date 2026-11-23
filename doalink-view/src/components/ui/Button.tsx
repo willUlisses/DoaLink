@@ -1,5 +1,12 @@
 import { Loader2 } from 'lucide-react'
-import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
+import {
+  cloneElement,
+  isValidElement,
+  type ButtonHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+} from 'react'
 
 export type ButtonVariant =
   | 'primary'
@@ -18,11 +25,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean
   loadingLabel?: string
   leftIcon?: ReactNode
+  rightIcon?: ReactNode
+  asChild?: boolean
   ref?: Ref<HTMLButtonElement>
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-white hover:bg-[#2B3544] border border-transparent',
+  primary: 'bg-ink text-white hover:bg-ink-hover border border-transparent',
   secondary:
     'bg-surface text-ink border border-border hover:bg-surface-subtle hover:border-border-strong',
   destructive: 'bg-danger text-white hover:bg-danger-hover border border-transparent',
@@ -39,12 +48,17 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
   lg: 'min-h-12 px-5 py-2.5 text-base',
 }
 
+const BASE_CLASSES =
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-button font-semibold transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
+
 export function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
   loadingLabel,
   leftIcon,
+  rightIcon,
+  asChild = false,
   disabled,
   className = '',
   children,
@@ -52,6 +66,36 @@ export function Button({
   ref,
   ...rest
 }: ButtonProps) {
+  const combinedClasses = [
+    BASE_CLASSES,
+    VARIANT_CLASSES[variant],
+    SIZE_CLASSES[size],
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  if (asChild && isValidElement(children)) {
+    const child = children as ReactElement<{ className?: string; children?: ReactNode }>
+    const mergedClassName = [combinedClasses, child.props.className].filter(Boolean).join(' ')
+    const content = (
+      <>
+        {leftIcon ? (
+          <span className="inline-flex shrink-0" aria-hidden="true">
+            {leftIcon}
+          </span>
+        ) : null}
+        {child.props.children}
+        {rightIcon ? (
+          <span className="inline-flex shrink-0" aria-hidden="true">
+            {rightIcon}
+          </span>
+        ) : null}
+      </>
+    )
+    return cloneElement(child, { className: mergedClassName }, content)
+  }
+
   const isDisabled = Boolean(disabled || loading)
 
   return (
@@ -60,7 +104,7 @@ export function Button({
       type={type}
       disabled={isDisabled}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-[8px] font-semibold transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      className={combinedClasses}
       {...rest}
     >
       {loading ? (
@@ -71,6 +115,11 @@ export function Button({
         </span>
       ) : null}
       <span>{loading && loadingLabel ? loadingLabel : children}</span>
+      {!loading && rightIcon ? (
+        <span className="inline-flex shrink-0" aria-hidden="true">
+          {rightIcon}
+        </span>
+      ) : null}
     </button>
   )
 }

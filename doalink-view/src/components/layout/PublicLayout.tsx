@@ -1,6 +1,7 @@
 import { ArrowRight, LogIn, UserPlus } from 'lucide-react'
 import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.ts'
+import { Button } from '../ui/Button.tsx'
 import { BrandLogo } from './BrandLogo.tsx'
 
 export function PublicLayout() {
@@ -19,29 +20,26 @@ export function PublicLayout() {
 
           <nav aria-label="Navegação principal" className="flex items-center gap-2 sm:gap-3">
             {isAuthenticated ? (
-              <Link
-                to="/app"
-                className="inline-flex min-h-10 items-center gap-2 rounded-[8px] bg-ink px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2B3544]"
-              >
-                <span>Ir para o painel</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              <Button asChild rightIcon={<ArrowRight className="h-4 w-4" />}>
+                <Link to="/app">Ir para o painel</Link>
+              </Button>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-[8px] border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle"
+                <Button
+                  asChild
+                  variant="secondary"
+                  leftIcon={<LogIn className="h-4 w-4" />}
+                  className="px-3.5"
                 >
-                  <LogIn className="h-4 w-4" aria-hidden="true" />
-                  <span>Entrar</span>
-                </Link>
-                <Link
-                  to="/cadastro"
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-[8px] bg-ink px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2B3544]"
+                  <Link to="/login">Entrar</Link>
+                </Button>
+                <Button
+                  asChild
+                  leftIcon={<UserPlus className="h-4 w-4" />}
+                  className="px-3.5"
                 >
-                  <UserPlus className="h-4 w-4" aria-hidden="true" />
-                  <span>Cadastrar</span>
-                </Link>
+                  <Link to="/cadastro">Cadastrar</Link>
+                </Button>
               </>
             )}
           </nav>

@@ -10,6 +10,12 @@ import {
   XCircle,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import {
+  LABELS_SITUACAO_CAMPANHA,
+  LABELS_SITUACAO_NECESSIDADE,
+  LABELS_SITUACAO_OFERTA,
+  LABELS_SITUACAO_RESERVA,
+} from '../../utils/labels.ts'
 import { Badge, type BadgeTone } from './Badge.tsx'
 
 export type AnySituacao =
@@ -33,57 +39,57 @@ interface StatusMeta {
 
 const STATUS_META: Record<AnySituacao, StatusMeta> = {
   DISPONIVEL: {
-    label: 'Disponível',
+    label: LABELS_SITUACAO_OFERTA.DISPONIVEL,
     tone: 'success',
     icon: <Sparkles className="h-3.5 w-3.5" />,
   },
   ABERTA: {
-    label: 'Aberta',
+    label: LABELS_SITUACAO_NECESSIDADE.ABERTA,
     tone: 'success',
     icon: <Sparkles className="h-3.5 w-3.5" />,
   },
   ATIVA: {
-    label: 'Ativa',
+    label: LABELS_SITUACAO_CAMPANHA.ATIVA,
     tone: 'danger',
     icon: <Flame className="h-3.5 w-3.5" />,
   },
   RESERVADA: {
-    label: 'Reservada',
+    label: LABELS_SITUACAO_OFERTA.RESERVADA,
     tone: 'info',
     icon: <BookmarkCheck className="h-3.5 w-3.5" />,
   },
   AGUARDANDO_TRANSPORTE: {
-    label: 'Aguardando transporte',
+    label: LABELS_SITUACAO_RESERVA.AGUARDANDO_TRANSPORTE,
     tone: 'warning',
     icon: <Clock className="h-3.5 w-3.5" />,
   },
   AGUARDANDO_RETIRADA: {
-    label: 'Aguardando retirada',
+    label: LABELS_SITUACAO_RESERVA.AGUARDANDO_RETIRADA,
     tone: 'info',
     icon: <PackageCheck className="h-3.5 w-3.5" />,
   },
   TRANSPORTE_VINCULADO: {
-    label: 'Transporte vinculado',
+    label: LABELS_SITUACAO_RESERVA.TRANSPORTE_VINCULADO,
     tone: 'transportador',
     icon: <Truck className="h-3.5 w-3.5" />,
   },
   CONCLUIDA: {
-    label: 'Concluída',
+    label: LABELS_SITUACAO_OFERTA.CONCLUIDA,
     tone: 'success',
     icon: <CheckCircle2 className="h-3.5 w-3.5" />,
   },
   ATENDIDA: {
-    label: 'Atendida',
+    label: LABELS_SITUACAO_NECESSIDADE.ATENDIDA,
     tone: 'success',
     icon: <CheckCircle2 className="h-3.5 w-3.5" />,
   },
   ENCERRADA: {
-    label: 'Encerrada',
+    label: LABELS_SITUACAO_CAMPANHA.ENCERRADA,
     tone: 'neutral',
     icon: <Lock className="h-3.5 w-3.5" />,
   },
   CANCELADA: {
-    label: 'Cancelada',
+    label: LABELS_SITUACAO_OFERTA.CANCELADA,
     tone: 'danger',
     icon: <XCircle className="h-3.5 w-3.5" />,
   },

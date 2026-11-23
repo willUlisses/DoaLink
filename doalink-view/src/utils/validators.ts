@@ -52,3 +52,9 @@ export function validarCep(valor: string): boolean {
   return digits.length === 8 && digits !== '00000000'
 }
 
+export function validarTelefoneOpcional(valor: string | null | undefined): boolean {
+  if (!valor || valor.trim() === '') return true
+  const digits = limparDigitos(valor)
+  return digits.length >= 10 && digits.length <= 11
+}
+

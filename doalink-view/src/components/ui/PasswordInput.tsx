@@ -6,6 +6,7 @@ export interface PasswordInputProps
   label: string
   error?: string
   hint?: string
+  compact?: boolean
   ref?: Ref<HTMLInputElement>
 }
 
@@ -13,6 +14,7 @@ export function PasswordInput({
   label,
   error,
   hint,
+  compact = false,
   id,
   required,
   className = '',
@@ -30,7 +32,7 @@ export function PasswordInput({
   if (error) describedByParts.push(errorId)
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`flex flex-col ${compact ? 'gap-1' : 'gap-1.5'}`}>
       <label htmlFor={inputId} className="text-sm font-medium text-ink">
         {label}
         {required ? (
@@ -47,7 +49,7 @@ export function PasswordInput({
           required={required}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={describedByParts.length > 0 ? describedByParts.join(' ') : undefined}
-          className={`w-full rounded-[12px] border bg-surface py-2.5 pl-3.5 pr-11 text-sm text-ink placeholder:text-ink-muted transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle ${
+          className={`w-full rounded-card border bg-surface ${compact ? 'py-2' : 'py-2.5'} pl-3.5 pr-11 text-sm text-ink placeholder:text-ink-muted transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle ${
             error
               ? 'border-danger focus-visible:outline-danger'
               : 'border-border hover:border-border-strong'
@@ -59,7 +61,7 @@ export function PasswordInput({
           onClick={() => setVisible((prev) => !prev)}
           aria-label={visible ? 'Ocultar senha' : 'Mostrar senha'}
           aria-pressed={visible}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[8px] p-1.5 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-button p-1.5 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
         >
           {visible ? (
             <EyeOff className="h-4 w-4" aria-hidden="true" />

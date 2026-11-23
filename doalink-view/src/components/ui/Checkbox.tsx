@@ -30,7 +30,7 @@ export function Checkbox({
     <div className="flex flex-col gap-1">
       <label
         htmlFor={checkboxId}
-        className={`flex items-start gap-3 rounded-[12px] border border-border bg-surface p-3.5 cursor-pointer transition-colors hover:border-border-strong ${className}`}
+        className={`flex items-start gap-3 rounded-card border border-border bg-surface p-3.5 cursor-pointer transition-colors hover:border-border-strong ${className}`}
       >
         <input
           ref={ref}

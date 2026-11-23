@@ -44,7 +44,7 @@ export function Textarea({
         required={required}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={describedByParts.length > 0 ? describedByParts.join(' ') : undefined}
-        className={`w-full rounded-[12px] border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle ${
+        className={`w-full rounded-card border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle ${
           error
             ? 'border-danger focus-visible:outline-danger'
             : 'border-border hover:border-border-strong'

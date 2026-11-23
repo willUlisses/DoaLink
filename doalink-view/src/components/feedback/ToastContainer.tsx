@@ -49,7 +49,7 @@ export function ToastContainer() {
             key={toast.id}
             role={role}
             aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
-            className={`pointer-events-auto flex items-start gap-3 rounded-[12px] border p-4 shadow-[var(--shadow-elevated)] ${border}`}
+            className={`pointer-events-auto flex items-start gap-3 rounded-card border p-4 shadow-[var(--shadow-elevated)] ${border}`}
           >
             <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${iconColor}`} aria-hidden="true" />
             <div className="min-w-0 flex-1">
@@ -64,7 +64,7 @@ export function ToastContainer() {
               type="button"
               onClick={() => dismissToast(toast.id)}
               aria-label="Fechar notificação"
-              className="rounded-[8px] p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
+              className="rounded-button p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink cursor-pointer"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>

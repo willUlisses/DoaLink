@@ -12,6 +12,7 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   placeholder?: string
   error?: string
   hint?: string
+  compact?: boolean
   children?: ReactNode
   ref?: Ref<HTMLSelectElement>
 }
@@ -22,6 +23,7 @@ export function Select({
   placeholder,
   error,
   hint,
+  compact = false,
   id,
   required,
   children,
@@ -39,7 +41,7 @@ export function Select({
   if (error) describedByParts.push(errorId)
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`flex flex-col ${compact ? 'gap-1' : 'gap-1.5'}`}>
       <label htmlFor={selectId} className="text-sm font-medium text-ink">
         {label}
         {required ? (
@@ -55,7 +57,7 @@ export function Select({
           required={required}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={describedByParts.length > 0 ? describedByParts.join(' ') : undefined}
-          className={`w-full appearance-none rounded-[12px] border bg-surface py-2.5 pl-3.5 pr-10 text-sm text-ink transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-ink-secondary ${
+          className={`w-full appearance-none rounded-card border bg-surface ${compact ? 'py-2' : 'py-2.5'} pl-3.5 pr-10 text-sm text-ink transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-ink-secondary ${
             error
               ? 'border-danger focus-visible:outline-danger'
               : 'border-border hover:border-border-strong'

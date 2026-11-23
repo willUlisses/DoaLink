@@ -29,6 +29,7 @@ interface AddressFieldsetProps<TFieldValues extends FieldValues> {
   setValue: UseFormSetValue<TFieldValues>
   errors?: FieldErrors<AddressFieldValue>
   required?: boolean
+  compact?: boolean
 }
 
 const UF_OPTIONS = UFS_BRASIL.map((uf) => ({ value: uf, label: uf }))
@@ -41,6 +42,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
   setValue,
   errors,
   required = true,
+  compact = false,
 }: AddressFieldsetProps<TFieldValues>) {
   const fieldPath = (name: keyof AddressFieldValue): Path<TFieldValues> =>
     `${prefix}.${name}` as Path<TFieldValues>
@@ -48,13 +50,17 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
   const cepField = register(fieldPath('cep'))
 
   return (
-    <fieldset className="rounded-[12px] border border-border bg-surface-subtle/50 p-4 sm:p-5">
+    <fieldset
+      className={`rounded-card border border-border bg-surface-subtle/50 ${
+        compact ? 'p-3.5' : 'p-4 sm:p-5'
+      }`}
+    >
       <legend className="px-1.5 text-sm font-semibold text-ink">{legend}</legend>
       {description ? (
-        <p className="mb-4 text-xs text-ink-secondary">{description}</p>
+        <p className={`${compact ? 'mb-2.5' : 'mb-4'} text-xs text-ink-secondary`}>{description}</p>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
+      <div className={`grid grid-cols-1 sm:grid-cols-6 ${compact ? 'gap-2.5' : 'gap-4'}`}>
         <div className="sm:col-span-2">
           <Input
             label="CEP"
@@ -62,6 +68,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             inputMode="numeric"
             maxLength={9}
             required={required}
+            compact={compact}
             error={errors?.cep?.message}
             {...cepField}
             onChange={(event) => {
@@ -81,6 +88,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             placeholder="Selecione"
             options={UF_OPTIONS}
             required={required}
+            compact={compact}
             error={errors?.estado?.message}
             {...register(fieldPath('estado'))}
           />
@@ -92,6 +100,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             placeholder="Ex.: São Paulo"
             maxLength={255}
             required={required}
+            compact={compact}
             error={errors?.cidade?.message}
             {...register(fieldPath('cidade'))}
           />
@@ -103,6 +112,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             placeholder="Ex.: Centro"
             maxLength={255}
             required={required}
+            compact={compact}
             error={errors?.bairro?.message}
             {...register(fieldPath('bairro'))}
           />
@@ -114,6 +124,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             placeholder="Rua, avenida, praça..."
             maxLength={255}
             required={required}
+            compact={compact}
             error={errors?.logradouro?.message}
             {...register(fieldPath('logradouro'))}
           />
@@ -124,7 +135,8 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             label="Número"
             placeholder="S/N se vazio"
             maxLength={20}
-            hint="Se vazio, será salvo como S/N."
+            compact={compact}
+            hint={compact ? undefined : 'Se vazio, será salvo como S/N.'}
             error={errors?.numero?.message}
             {...register(fieldPath('numero'))}
           />
@@ -135,6 +147,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
             label="Complemento"
             placeholder="Sala, galpão, ponto de referência (opcional)"
             maxLength={100}
+            compact={compact}
             error={errors?.complemento?.message}
             {...register(fieldPath('complemento'))}
           />

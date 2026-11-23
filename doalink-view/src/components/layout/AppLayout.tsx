@@ -10,14 +10,16 @@ import {
   Package,
   PlusCircle,
   Truck,
+  UserCog,
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.ts'
 import { useToast } from '../../hooks/useToast.ts'
 import type { TipoUsuario } from '../../types/enums.ts'
 import { PROFILE_THEME } from '../../utils/theme.ts'
+import { Button } from '../ui/Button.tsx'
 import { ProfileBadge } from '../ui/ProfileBadge.tsx'
 import { BrandLogo } from './BrandLogo.tsx'
 
@@ -29,36 +31,27 @@ interface NavItem {
 }
 
 function buildNavItems(tipoUsuario: TipoUsuario): NavItem[] {
-  const comuns: NavItem[] = [
-    {
-      to: '/app',
-      label: 'Painel inicial',
-      icon: <LayoutDashboard className="h-4 w-4" aria-hidden="true" />,
-      end: true,
-    },
-    {
-      to: '/app/ofertas',
-      label: 'Ofertas disponíveis',
-      icon: <Gift className="h-4 w-4" aria-hidden="true" />,
-      end: true,
-    },
-    {
-      to: '/app/necessidades',
-      label: 'Necessidades abertas',
-      icon: <ClipboardList className="h-4 w-4" aria-hidden="true" />,
-      end: true,
-    },
-    {
-      to: '/app/campanhas',
-      label: 'Campanhas emergenciais',
-      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
-      end: true,
-    },
-  ]
+  const inicio: NavItem = {
+    to: '/app',
+    label: 'Painel inicial',
+    icon: <LayoutDashboard className="h-4 w-4" aria-hidden="true" />,
+    end: true,
+  }
+  const campanhas: NavItem = {
+    to: '/app/campanhas',
+    label: 'Campanhas emergenciais',
+    icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+    end: true,
+  }
+  const perfil: NavItem = {
+    to: '/app/perfil',
+    label: 'Meu perfil',
+    icon: <UserCog className="h-4 w-4" aria-hidden="true" />,
+  }
 
   if (tipoUsuario === 'DOADOR') {
     return [
-      ...comuns,
+      inicio,
       {
         to: '/app/minhas-ofertas',
         label: 'Minhas ofertas',
@@ -74,12 +67,26 @@ function buildNavItems(tipoUsuario: TipoUsuario): NavItem[] {
         label: 'Reservas recebidas',
         icon: <BookmarkCheck className="h-4 w-4" aria-hidden="true" />,
       },
+      {
+        to: '/app/necessidades',
+        label: 'Necessidades abertas',
+        icon: <ClipboardList className="h-4 w-4" aria-hidden="true" />,
+        end: true,
+      },
+      campanhas,
+      perfil,
     ]
   }
 
   if (tipoUsuario === 'RECEPTOR') {
     return [
-      ...comuns,
+      inicio,
+      {
+        to: '/app/ofertas',
+        label: 'Ofertas disponíveis',
+        icon: <Gift className="h-4 w-4" aria-hidden="true" />,
+        end: true,
+      },
       {
         to: '/app/minhas-reservas',
         label: 'Minhas reservas',
@@ -95,11 +102,13 @@ function buildNavItems(tipoUsuario: TipoUsuario): NavItem[] {
         label: 'Minhas campanhas',
         icon: <Flame className="h-4 w-4" aria-hidden="true" />,
       },
+      campanhas,
+      perfil,
     ]
   }
 
   return [
-    ...comuns,
+    inicio,
     {
       to: '/app/entregas-disponiveis',
       label: 'Aguardando transporte',
@@ -115,6 +124,8 @@ function buildNavItems(tipoUsuario: TipoUsuario): NavItem[] {
       label: 'Disponibilidades',
       icon: <CalendarClock className="h-4 w-4" aria-hidden="true" />,
     },
+    campanhas,
+    perfil,
   ]
 }
 
@@ -122,6 +133,7 @@ export function AppLayout() {
   const { user, logoutUser } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -161,13 +173,13 @@ export function AppLayout() {
             type="button"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Fechar menu de navegação"
-            className="rounded-[8px] p-1.5 text-ink-secondary hover:bg-surface-subtle hover:text-ink lg:hidden cursor-pointer"
+            className="rounded-button p-1.5 text-ink-secondary hover:bg-surface-subtle hover:text-ink lg:hidden cursor-pointer"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="rounded-[12px] border border-border bg-canvas p-3.5">
+        <div className="rounded-card border border-border bg-canvas p-3.5">
           <ProfileBadge tipoUsuario={user.tipoUsuario} />
           <p className="mt-2 truncate text-sm font-semibold text-ink">{user.nome}</p>
           <p className="truncate text-xs text-ink-secondary">{user.email}</p>
@@ -179,9 +191,14 @@ export function AppLayout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              state={
+                item.to === '/app/perfil' && location.pathname !== '/app/perfil'
+                  ? { from: location.pathname }
+                  : undefined
+              }
               onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
+                `flex items-center gap-2.5 rounded-button px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
                   isActive
                     ? `${theme.softBg} ${theme.softText} font-semibold`
                     : 'text-ink-secondary hover:bg-surface-subtle hover:text-ink'
@@ -200,7 +217,7 @@ export function AppLayout() {
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
-          className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-sm font-medium text-ink-secondary transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-60 cursor-pointer"
+          className="flex w-full items-center gap-2.5 rounded-button px-3 py-2.5 text-sm font-medium text-ink-secondary transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-60 cursor-pointer"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
           <span>{loggingOut ? 'Saindo...' : 'Sair da conta'}</span>
@@ -220,16 +237,17 @@ export function AppLayout() {
         <BrandLogo to="/app" />
         <div className="flex items-center gap-2">
           <ProfileBadge tipoUsuario={user.tipoUsuario} className="hidden sm:inline-flex" />
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             aria-label="Abrir menu de navegação"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-sidebar"
             onClick={() => setMobileMenuOpen(true)}
-            className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-[8px] border border-border bg-surface text-ink hover:bg-surface-subtle cursor-pointer"
+            className="min-w-10 px-2.5"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </header>
 

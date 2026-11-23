@@ -12,6 +12,7 @@
 
   /* Hierarquia de texto (WCAG AA validada) */
   --color-ink: #1E2530;
+  --color-ink-hover: #2B3544;
   --color-ink-secondary: #59616A;
   --color-ink-tertiary: #6B727B;
   /* #747A80 tem contraste 4.05:1 sobre #F7F7F5 (AA apenas texto grande); #656B72 atinge 5.02:1 */

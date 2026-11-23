@@ -83,7 +83,7 @@ export const LABELS_SITUACAO_CAMPANHA: Record<SituacaoCampanha, string> = {
 
 export const LABELS_SITUACAO_DISPONIBILIDADE: Record<SituacaoDisponibilidade, string> = {
   DISPONIVEL: 'Disponível',
-  RESERVADA: 'Em uso / Reservada',
+  RESERVADA: 'Reservada',
   CONCLUIDA: 'Concluída',
   CANCELADA: 'Cancelada',
 }

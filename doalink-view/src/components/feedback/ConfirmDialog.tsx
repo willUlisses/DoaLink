@@ -96,7 +96,7 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={descId}
         tabIndex={-1}
-        className="w-full max-w-md rounded-[12px] border border-border bg-surface p-6 shadow-[var(--shadow-elevated)]"
+        className="w-full max-w-md rounded-card border border-border bg-surface p-6 shadow-[var(--shadow-elevated)]"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-lg font-semibold text-ink">
@@ -107,7 +107,7 @@ export function ConfirmDialog({
             disabled={loading}
             onClick={onClose}
             aria-label="Fechar diálogo"
-            className="rounded-[8px] p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink disabled:opacity-50 cursor-pointer"
+            className="rounded-button p-1 text-ink-secondary hover:bg-surface-subtle hover:text-ink disabled:opacity-50 cursor-pointer"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

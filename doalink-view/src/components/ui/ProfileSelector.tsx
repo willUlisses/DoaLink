@@ -7,6 +7,7 @@ interface ProfileSelectorProps {
   value: TipoUsuario
   onChange: (value: TipoUsuario) => void
   error?: string
+  compact?: boolean
 }
 
 const PROFILE_OPTIONS: Array<{
@@ -35,12 +36,17 @@ const PROFILE_OPTIONS: Array<{
   },
 ]
 
-export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps) {
+export function ProfileSelector({
+  value,
+  onChange,
+  error,
+  compact = false,
+}: ProfileSelectorProps) {
   const groupId = useId()
 
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend id={groupId} className="text-sm font-medium text-ink mb-1">
+    <fieldset className={`flex flex-col ${compact ? 'gap-1.5' : 'gap-2'}`}>
+      <legend id={groupId} className="text-sm font-medium text-ink mb-0.5">
         Qual é o seu perfil no DoaLink?
         <span className="ml-1 text-danger" aria-hidden="true">
           *
@@ -49,7 +55,7 @@ export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps
       <div
         role="radiogroup"
         aria-labelledby={groupId}
-        className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        className="grid grid-cols-1 gap-2.5 sm:grid-cols-3"
       >
         {PROFILE_OPTIONS.map((option) => {
           const isSelected = value === option.value
@@ -57,7 +63,9 @@ export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps
           return (
             <label
               key={option.value}
-              className={`relative flex flex-col gap-2 rounded-[12px] border p-4 cursor-pointer transition-colors duration-150 ${
+              className={`relative flex flex-col rounded-card border cursor-pointer transition-colors duration-150 ${
+                compact ? 'gap-1 p-3' : 'gap-2 p-4'
+              } ${
                 isSelected
                   ? option.selectedClass
                   : 'border-border bg-surface hover:border-border-strong'
@@ -71,9 +79,9 @@ export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps
                 onChange={() => onChange(option.value)}
                 className="sr-only"
               />
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] ${option.iconBgClass}`}
+                  className={`inline-flex ${compact ? 'h-7 w-7' : 'h-8 w-8'} items-center justify-center rounded-button ${option.iconBgClass}`}
                   aria-hidden="true"
                 >
                   <Icon className="h-4 w-4" />
@@ -82,7 +90,7 @@ export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps
                   {LABELS_TIPO_USUARIO[option.value]}
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-ink-secondary">
+              <p className={`text-xs text-ink-secondary ${compact ? 'leading-snug' : 'leading-relaxed'}`}>
                 {DESCRICOES_TIPO_USUARIO[option.value]}
               </p>
             </label>

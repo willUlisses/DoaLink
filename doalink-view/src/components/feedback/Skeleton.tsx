@@ -2,7 +2,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse rounded-[8px] bg-surface-subtle ${className}`}
+      className={`animate-pulse rounded-button bg-surface-subtle ${className}`}
     />
   )
 }
@@ -17,7 +17,7 @@ export function CardListSkeleton({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className="rounded-[12px] border border-border bg-surface p-5 shadow-[var(--shadow-card)]"
+          className="rounded-card border border-border bg-surface p-5 shadow-[var(--shadow-card)]"
         >
           <div className="flex items-center justify-between gap-3 mb-4">
             <Skeleton className="h-5 w-28" />

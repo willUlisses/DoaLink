@@ -20,7 +20,7 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-[12px] border border-border bg-surface shadow-[var(--shadow-card)] ${PADDING_MAP[padding]} ${className}`}
+      className={`rounded-card border border-border bg-surface shadow-[var(--shadow-card)] ${PADDING_MAP[padding]} ${className}`}
       {...rest}
     >
       {children}

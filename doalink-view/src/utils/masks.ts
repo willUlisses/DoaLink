@@ -29,3 +29,22 @@ export function formatarCep(cep: string | null | undefined): string {
   return `${digits.slice(0, 5)}-${digits.slice(5)}`
 }
 
+export function mascararTelefone(valor: string): string {
+  const digits = limparDigitos(valor).slice(0, 11)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+export function formatarTelefone(telefone: string | null | undefined): string {
+  if (!telefone) return ''
+  const digits = limparDigitos(telefone)
+  if (digits.length < 10 || digits.length > 11) return telefone
+  return mascararTelefone(digits)
+}
+

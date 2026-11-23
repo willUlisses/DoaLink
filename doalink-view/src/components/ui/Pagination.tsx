@@ -24,7 +24,7 @@ export function Pagination({
   return (
     <nav
       aria-label="Paginação de resultados"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-border bg-surface px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface px-4 py-3"
     >
       <p className="text-sm text-ink-secondary">
         Página <span className="font-semibold text-ink">{page + 1}</span> de{' '}
@@ -45,9 +45,9 @@ export function Pagination({
           size="sm"
           disabled={disabled || isLast}
           onClick={() => onPageChange(page + 1)}
+          rightIcon={<ChevronRight className="h-4 w-4" />}
         >
-          <span>Próxima</span>
-          <ChevronRight className="h-4 w-4 ml-1 inline" aria-hidden="true" />
+          Próxima
         </Button>
       </div>
     </nav>

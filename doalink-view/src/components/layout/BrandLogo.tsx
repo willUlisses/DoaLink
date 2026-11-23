@@ -9,11 +9,11 @@ export function BrandLogo({ to = '/', compact = false }: BrandLogoProps) {
   return (
     <Link
       to={to}
-      className="inline-flex items-center gap-2.5 rounded-[8px] text-ink no-underline"
+      className="inline-flex items-center gap-2.5 rounded-button text-ink no-underline"
       aria-label="DoaLink — Página inicial"
     >
       <span
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-ink text-white shadow-xs"
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-button bg-ink text-white shadow-xs"
         aria-hidden="true"
       >
         <svg

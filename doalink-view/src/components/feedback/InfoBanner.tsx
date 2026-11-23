@@ -49,7 +49,7 @@ export function InfoBanner({
   return (
     <div
       role={resolvedRole}
-      className={`flex flex-col gap-3 rounded-[12px] border p-4 sm:flex-row sm:items-start sm:justify-between ${container} ${className}`}
+      className={`flex flex-col gap-3 rounded-card border p-4 sm:flex-row sm:items-start sm:justify-between ${container} ${className}`}
     >
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${iconColor}`} aria-hidden="true" />
