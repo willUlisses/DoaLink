@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { configureApiAuthHandlers } from '../services/api.ts'
 import { logout, refreshSession } from '../services/auth.service.ts'
 import type { UsuarioResponse } from '../types/auth.ts'
@@ -22,6 +22,14 @@ export function AuthProvider({
     initialUser ? 'authenticated' : skipInitialRefresh ? 'unauthenticated' : 'loading',
   )
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
+
+  // Espelho do usuário para leitura síncrona fora do render (evita setState de outro provider
+  // dentro do updater de setUser, que dispara "Cannot update a component while rendering").
+  const userRef = useRef<UsuarioResponse | null>(initialUser)
+
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
 
   const clearSession = useCallback(() => {
     setUser(null)
@@ -47,16 +55,15 @@ export function AuthProvider({
   useEffect(() => {
     configureApiAuthHandlers({
       onSessionExpired: () => {
-        setUser((current) => {
-          if (current !== null) {
-            showToast({
-              variant: 'warning',
-              title: 'Sessão expirada',
-              description: 'Entre novamente para continuar utilizando o DoaLink.',
-            })
-          }
-          return null
-        })
+        if (userRef.current !== null) {
+          showToast({
+            variant: 'warning',
+            title: 'Sessão expirada',
+            description: 'Entre novamente para continuar utilizando o DoaLink.',
+          })
+        }
+        userRef.current = null
+        setUser(null)
         setStatus('unauthenticated')
       },
     })

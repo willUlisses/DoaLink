@@ -69,5 +69,39 @@ describe('Proteção de rotas e redirecionamentos por perfil', () => {
 
     expect(await screen.findByRole('heading', { name: /olá, ong esperança/i })).toBeInTheDocument()
   })
+
+  it('bloqueia Doador em /app/ofertas e Receptor em /app/necessidades', async () => {
+    const doador: UsuarioResponse = {
+      id: 1,
+      nome: 'Carlos Doador',
+      email: 'carlos@doalink.org',
+      tipoUsuario: 'DOADOR',
+    }
+    const receptor: UsuarioResponse = {
+      id: 2,
+      nome: 'ONG Esperança',
+      email: 'ong@doalink.org',
+      tipoUsuario: 'RECEPTOR',
+    }
+
+    const { unmount } = renderAtRoute('/app/ofertas', doador)
+    expect(await screen.findByRole('heading', { name: /acesso negado/i })).toBeInTheDocument()
+    unmount()
+
+    renderAtRoute('/app/necessidades', receptor)
+    expect(await screen.findByRole('heading', { name: /acesso negado/i })).toBeInTheDocument()
+  })
+
+  it('remove /app/usuarios e exibe página não encontrada quando acessada diretamente', async () => {
+    const doador: UsuarioResponse = {
+      id: 1,
+      nome: 'Carlos Doador',
+      email: 'carlos@doalink.org',
+      tipoUsuario: 'DOADOR',
+    }
+
+    renderAtRoute('/app/usuarios', doador)
+    expect(await screen.findByRole('heading', { name: /página não encontrada/i })).toBeInTheDocument()
+  })
 })
 

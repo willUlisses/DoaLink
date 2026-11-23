@@ -98,6 +98,11 @@ const ReservasDoadorPage = lazy(() =>
     default: m.ReservasDoadorPage,
   })),
 )
+const MeuPerfilPage = lazy(() =>
+  import('../pages/app/perfil/MeuPerfilPage.tsx').then((m) => ({
+    default: m.MeuPerfilPage,
+  })),
+)
 
 function RouteSuspense({ children }: { children: React.ReactNode }) {
   return (
@@ -138,34 +143,10 @@ export function AppRoutes() {
 
           {/* Rotas autenticadas para qualquer perfil */}
           <Route
-            path="ofertas"
-            element={
-              <RouteSuspense>
-                <OfertasDisponiveisPage />
-              </RouteSuspense>
-            }
-          />
-          <Route
             path="ofertas/:id"
             element={
               <RouteSuspense>
                 <OfertaDetalhePage />
-              </RouteSuspense>
-            }
-          />
-          <Route
-            path="necessidades"
-            element={
-              <RouteSuspense>
-                <NecessidadesPage />
-              </RouteSuspense>
-            }
-          />
-          <Route
-            path="necessidades/:id"
-            element={
-              <RouteSuspense>
-                <NecessidadeDetalhePage />
               </RouteSuspense>
             }
           />
@@ -185,9 +166,37 @@ export function AppRoutes() {
               </RouteSuspense>
             }
           />
+          <Route
+            path="perfil"
+            element={
+              <RouteSuspense>
+                <MeuPerfilPage />
+              </RouteSuspense>
+            }
+          />
+
+          {/* Detalhe de necessidade (Doador ou Receptor dono) */}
+          <Route element={<RoleRoute allowedRoles={[TIPO_USUARIO.DOADOR, TIPO_USUARIO.RECEPTOR]} />}>
+            <Route
+              path="necessidades/:id"
+              element={
+                <RouteSuspense>
+                  <NecessidadeDetalhePage />
+                </RouteSuspense>
+              }
+            />
+          </Route>
 
           {/* Rotas exclusivas do Doador */}
           <Route element={<RoleRoute allowedRoles={[TIPO_USUARIO.DOADOR]} />}>
+            <Route
+              path="necessidades"
+              element={
+                <RouteSuspense>
+                  <NecessidadesPage />
+                </RouteSuspense>
+              }
+            />
             <Route
               path="minhas-ofertas"
               element={
@@ -216,6 +225,14 @@ export function AppRoutes() {
 
           {/* Rotas exclusivas do Receptor */}
           <Route element={<RoleRoute allowedRoles={[TIPO_USUARIO.RECEPTOR]} />}>
+            <Route
+              path="ofertas"
+              element={
+                <RouteSuspense>
+                  <OfertasDisponiveisPage />
+                </RouteSuspense>
+              }
+            />
             <Route
               path="minhas-necessidades"
               element={
