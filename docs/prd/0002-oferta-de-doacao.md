@@ -1,19 +1,19 @@
 # PRD 0002: Oferta de Doação
 
-- **Status:** Proposto
-- **Data:** 2026-11-09
+- **Status:** Aceito (atualizado conforme implementação)
+- **Data:** 2026-11-09 (Atualizado: 2026-11-22)
 - **Especificações:** [Spec 0002 — Oferta de Doação](../specs/0002-oferta-de-doacao.md)
 
 ---
 
 ## Descrição geral
 
-O DoaLink permite que um Doador registre uma oferta de doação contendo um ou mais itens categorizados, uma quantidade e, opcionalmente, um local de retirada diferente do endereço cadastrado. A oferta fica disponível para consulta por outros participantes autenticados e pode ser usada nos critérios de compatibilidade com necessidades de Receptores (RF-007).
+O DoaLink permite que um Doador registre uma oferta de doação contendo um ou mais itens categorizados, uma quantidade e unidade e, opcionalmente, um local de retirada diferente do endereço cadastrado. A oferta fica disponível para consulta por outros participantes autenticados e pode ser reservada diretamente por Receptores ([PRD 0006 — RF-010](./0006-reserva-e-vinculo-de-transporte.md)).
 
 O sistema **não faz**:
 - Edição de oferta após a criação.
 - Expiração automática de ofertas por prazo.
-- Acompanhamento da entrega física da doação (ver RF-009).
+- Histórico detalhado de etapas da entrega física (ver RF-009 no PRD 0005).
 - Comunicação direta entre Doador e Receptor dentro do sistema.
 
 ---
@@ -23,8 +23,8 @@ O sistema **não faz**:
 | Perfil | Quem é | O que precisa fazer |
 |---|---|---|
 | Doador | Pessoa física ou jurídica cadastrada como doador | Registrar oferta, consultar suas próprias ofertas, cancelar oferta |
-| Transportador | Transportador autenticado | Consultar ofertas disponíveis |
-| Receptor | ONG autenticada | Consultar ofertas disponíveis |
+| Transportador | Transportador autenticado | Consultar ofertas disponíveis (e detalhamento completo apenas quando reservada e vinculada a si) |
+| Receptor | ONG autenticada | Consultar ofertas disponíveis e reservar ofertas |
 
 ---
 
@@ -32,15 +32,16 @@ O sistema **não faz**:
 
 ### RF-004 — Oferta de doação
 
-**Descrição:** O sistema permite que um Doador registre uma oferta com um ou mais itens. Cada item possui tipo, quantidade e descrição. A oferta pode incluir um local de retirada opcional. O sistema disponibiliza a oferta para consulta por participantes autenticados.
+**Descrição:** O sistema permite que um Doador registre uma oferta com um ou mais itens. Cada item possui tipo, unidade, quantidade e descrição. A oferta pode incluir um local de retirada opcional. O sistema disponibiliza a oferta para consulta por participantes autenticados.
 
 | Campo | Tipo sugerido | Máscara | Validação e observações |
 |---|---|---|---|
-| \*Itens da oferta | Lista de ItemDoacao | — | Obrigatório; mínimo 1 item, máximo 20 itens por oferta. |
+| \*Itens da oferta | Lista de ItemDoacao | — | Obrigatório; mínimo 1 item, máximo 50 itens por oferta. |
 | \*Tipo do item ¹ | ENUM | — | Obrigatório por item. Deve pertencer ao catálogo fixo de categorias. |
-| \*Descrição do item | VARCHAR(100) | — | Obrigatório por item. |
-| \*Quantidade | Double | Conforme unidade | Obrigatório por item. Deve ser maior que zero. Unidade fixada em quilogramas (KG) nesta versão. |
-| Local de retirada ² | Endereço estruturado | Conforme campos de endereço | Opcional. Quando não informado, o local de retirada é definido em acordo entre as partes fora do sistema. |
+| \*Unidade do item ² | ENUM (`TipoUnidade`) | — | Obrigatório por item (`KG`, `T`, `G`, `ML`, `CAIXAS`, `CESTAS_BASICAS`, `SEMUNIDADE`). |
+| \*Descrição do item | VARCHAR(500) | — | Obrigatório por item. Máximo de 500 caracteres. |
+| \*Quantidade | Double | Conforme unidade | Obrigatório por item. Deve ser maior que zero. |
+| Local de retirada ³ | Endereço estruturado | Conforme campos de endereço | Opcional. Quando não informado, o local de retirada é definido em acordo entre as partes fora do sistema. |
 | Situação da oferta | ENUM | — | Gerenciado pelo sistema. Valores: `DISPONIVEL`, `RESERVADA`, `CONCLUIDA`, `CANCELADA`. Valor inicial: `DISPONIVEL`. |
 
 ¹ Categorias de itens aceitas (catálogo fixo desta versão):
@@ -51,7 +52,9 @@ O sistema **não faz**:
 - `MEDICAMENTOS` — Medicamentos
 - `ELETRODOMESTICOS` — Eletrodomésticos
 
-² Campos do endereço de retirada: CEP, estado (UF), cidade, bairro, logradouro; número opcional (padrão `S/N`); complemento opcional. Quando o endereço de retirada é informado, os campos obrigatórios do endereço devem estar preenchidos.
+² Unidades aceitas (`TipoUnidade`): `KG`, `T`, `G`, `ML`, `CAIXAS`, `CESTAS_BASICAS`, `SEMUNIDADE`.
+
+³ Campos do endereço de retirada: CEP, estado (UF), cidade, bairro, logradouro; número opcional (padrão `S/N`); complemento opcional. Quando o endereço de retirada é informado, os campos obrigatórios do endereço devem estar preenchidos.
 
 **Critérios de aceite**
 
@@ -80,7 +83,7 @@ O sistema **não faz**:
 | Item | Requisitos afetados | Situação |
 |---|---|---|
 | Validade / expiração automática da oferta | RF-004 | Fora do escopo desta versão — decisão futura |
-| Regras de visibilidade (quem vê ofertas de qual situação) | RF-004 | Em aberto para RF-007 |
+| Regras de visibilidade (quem vê ofertas de qual situação) | RF-004 | Resolvido no PRD 0006 (RF-010) e Spec 0002 |
 | Duplicidade de itens com mesma categoria dentro de uma oferta | RF-004 | Permitida nesta versão |
 
 ---

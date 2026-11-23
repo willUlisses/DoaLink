@@ -54,7 +54,7 @@ Todo o controle de sessão é realizado de forma stateless através de **cookies
 ### Requests (`record`)
 | DTO | Campos | Validações Bean Validation |
 |---|---|---|
-| `CadastroComumRequest` | `nome`, `senha`, `email`, `cpf`, `cnpj` | `@NotBlank nome`, `@Email @NotBlank email`, `@Size(min=8, max=72) senha`, `@AssertTrue` garantindo exatamente um entre CPF ou CNPJ preenchido |
+| `CadastroComumRequest` | `nome`, `senha`, `email`, `cpf`, `cnpj` | `@NotBlank nome`, `@Email @NotBlank email`, `@Size(min=8, max=60) senha`, `@AssertTrue` garantindo exatamente um entre CPF ou CNPJ preenchido |
 | `CadastroReceptorRequest` | `nome`, `senha`, `email`, `cnpj`, `endereco` | `@NotBlank nome`, `@Email @NotBlank email`, `@Size(min=8, max=72) senha`, `@CNPJ @NotBlank cnpj`, `@NotNull @Valid endereco` |
 | `EnderecoRequest` | `cep`, `logradouro`, `numero`, `bairro`, `cidade`, `estado`, `complemento` | `@NotBlank` em todos (exceto complemento) |
 | `LoginRequest` | `email`, `senha` | `@Email @NotBlank email`, `@NotBlank senha` |
