@@ -14,17 +14,44 @@ public record ReservaEntregaResponse(
         boolean precisaTransporte,
         Long ofertaId,
         SituacaoOferta situacaoOferta,
-        Long disponibilidadeId,
+        Long transportadorId,
         ContatoResponse doador,
         ContatoResponse receptor,
         ContatoResponse transportador,
         EnderecoResponse enderecoRetirada,
         EnderecoResponse enderecoEntrega,
         List<ItemDoacaoResponse> itens,
+        LocalDateTime aceitoEm,
+        LocalDateTime autorizadoEm,
+        LocalDateTime retiradaConfirmadaEm,
+        LocalDateTime entregaConfirmadaEm,
+        String codigoRetirada,
+        String codigoEntrega,
+        LocalDateTime codigoEntregaExpiraEm,
+        List<EventoTransporteResponse> historicoEventos,
         LocalDateTime criadoEm,
         LocalDateTime atualizadoEm
 ) {
     public static ReservaEntregaResponse from(ReservaEntrega reserva, boolean incluirDadosCompletos) {
+        return from(reserva, incluirDadosCompletos, null, null, null, List.of());
+    }
+
+    public static ReservaEntregaResponse from(
+            ReservaEntrega reserva,
+            boolean incluirDadosCompletos,
+            String codigoRetirada,
+            String codigoEntrega,
+            LocalDateTime codigoEntregaExpiraEm) {
+        return from(reserva, incluirDadosCompletos, codigoRetirada, codigoEntrega, codigoEntregaExpiraEm, List.of());
+    }
+
+    public static ReservaEntregaResponse from(
+            ReservaEntrega reserva,
+            boolean incluirDadosCompletos,
+            String codigoRetirada,
+            String codigoEntrega,
+            LocalDateTime codigoEntregaExpiraEm,
+            List<EventoTransporteResponse> historicoEventos) {
         OfertaDoacao oferta = reserva.getOferta();
         EnderecoResponse retirada = null;
         if (oferta != null && oferta.getLocalRetirada() != null) {
@@ -49,12 +76,10 @@ public record ReservaEntregaResponse(
                 : null;
 
         ContatoResponse transportadorContato = null;
-        Long disponibilidadeId = null;
-        if (reserva.getDisponibilidade() != null) {
-            disponibilidadeId = reserva.getDisponibilidade().getId();
-            if (reserva.getDisponibilidade().getTransportador() != null) {
-                transportadorContato = ContatoResponse.from(reserva.getDisponibilidade().getTransportador());
-            }
+        Long transportadorId = null;
+        if (reserva.getTransportador() != null) {
+            transportadorId = reserva.getTransportador().getId();
+            transportadorContato = ContatoResponse.from(reserva.getTransportador());
         }
 
         return new ReservaEntregaResponse(
@@ -63,16 +88,23 @@ public record ReservaEntregaResponse(
                 reserva.isPrecisaTransporte(),
                 oferta != null ? oferta.getId() : null,
                 oferta != null ? oferta.getSituacao() : null,
-                disponibilidadeId,
+                transportadorId,
                 doadorContato,
                 receptorContato,
                 transportadorContato,
                 retirada,
                 entrega,
                 oferta != null ? oferta.getItens().stream().map(ItemDoacaoResponse::from).toList() : List.of(),
+                reserva.getAceitoEm(),
+                reserva.getAutorizadoEm(),
+                reserva.getRetiradaConfirmadaEm(),
+                reserva.getEntregaConfirmadaEm(),
+                codigoRetirada,
+                codigoEntrega,
+                codigoEntregaExpiraEm,
+                historicoEventos != null ? historicoEventos : List.of(),
                 reserva.getCriadoEm(),
                 reserva.getAtualizadoEm()
         );
     }
 }
-

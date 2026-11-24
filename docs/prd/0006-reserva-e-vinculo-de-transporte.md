@@ -1,9 +1,11 @@
-# PRD 0006: Reserva de Oferta e Vínculo de Transporte
+# PRD 0006: Reserva de Oferta e Vínculo de Transporte _(atualizado pelo [PRD 0007](0007-fluxo-de-transporte-por-codigos-de-seguranca.md))_
 
 - **Status:** Proposto
 - **Data:** 2026-11-17
 - **Especificações:** [Spec 0006 — Reserva de Oferta e Vínculo de Transporte](../specs/0006-reserva-e-vinculo-de-transporte.md)
-- **ADRs relacionados:** [ADR 0010 — Vínculo entre oferta, receptor e transporte via entidade de reserva](../adr/0012-vinculo-entre-oferta-receptor-e-transporte.md)
+- **ADRs relacionados:** [ADR 0012](../adr/0012-vinculo-entre-oferta-receptor-e-transporte.md) (substituído pelo [ADR 0013](../adr/0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md))
+
+> **Nota de evolução:** A partir do [PRD 0007](0007-fluxo-de-transporte-por-codigos-de-seguranca.md), o vínculo por disponibilidade de transporte foi substituído pelo aceite direto do transportador com autorização do doador, códigos de retirada e entrega com hash e suspensão automática por expiração de 24h.
 
 ---
 

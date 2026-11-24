@@ -166,3 +166,7 @@ ADRs sugeridos para registrar as decisões já tomadas:
 | 0007 | Segregação de contratos OpenAPI em interfaces de controller |
 | 0008 | Recuperação de senha via token opaco hashado e envio SMTP |
 | 0009 | Confirmação de e-mail por código numérico de 6 dígitos com hash SHA-256 e janela estrita de 90 segundos |
+| 0010 | Campanha emergencial criada por receptores com endereço de recebimento |
+| 0011 | Modelo de dados para disponibilidade de transporte *(substituído pelo ADR 0013)* |
+| 0012 | Vínculo entre oferta, receptor e transporte via entidade de reserva *(substituído pelo ADR 0013)* |
+| 0013 | Fluxo de transporte sem disponibilidade prévia, códigos com hash e suspensão automática por expiração |

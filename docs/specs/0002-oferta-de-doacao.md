@@ -67,7 +67,7 @@ O `Receptor` mantém seu próprio endereço obrigatório (`enderecoOrganizacao`)
 
 | DTO | Campo | Tipo | Validação |
 |---|---|---|---|
-| `OfertaDoacaoRequest` | `itens` | `List<ItemDoacaoRequest>` | `@NotEmpty`, `@Size(max=20)`, `@Valid` |
+| `OfertaDoacaoRequest` | `itens` | `List<ItemDoacaoRequest>` | `@NotEmpty`, `@Size(max=50)`, `@Valid` |
 | | `endereco` | `EnderecoRequest` | Opcional — sem `@NotNull`; `@Valid` quando presente |
 | `ItemDoacaoRequest` | `descricao` | `String` | `@NotBlank`, `@Size(max=500)` |
 | | `tipoItemDoacao` | `TipoItemDoacao` | `@NotNull` |

@@ -1,9 +1,9 @@
-# PRD 0003: Disponibilidade de Transporte
+# PRD 0003: Disponibilidade de Transporte _(retirado — substituído pelo [PRD 0007](0007-fluxo-de-transporte-por-codigos-de-seguranca.md))_
 
-- **Status:** Proposto
+- **Status:** Retirado
 - **Data:** 2026-11-16
 - **Especificações:** [Spec 0005 — Disponibilidade de Transporte](../specs/0005-disponibilidade-de-transporte.md)
-- **ADRs relacionados:** [ADR 0009 — Modelo de dados para disponibilidade de transporte](../adr/0011-modelo-de-dados-disponibilidade-de-transporte.md)
+- **ADRs relacionados:** [ADR 0011 — Modelo de dados para disponibilidade de transporte](../adr/0011-modelo-de-dados-disponibilidade-de-transporte.md) (substituído pelo [ADR 0013](../adr/0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md))
 
 ---
 
@@ -32,7 +32,7 @@ O sistema **não faz** nesta versão:
 
 ## Requisitos funcionais
 
-### RF-005 — Disponibilidade de transporte
+### RF-005 — Disponibilidade de transporte _(retirado)_
 
 **Descrição:** O sistema permite que um Transportador registre uma disponibilidade de transporte informando o tipo de veículo, a capacidade e unidade, a origem e a data (com horário se necessário). O sistema disponibiliza o registro na listagem pessoal do Transportador, permite o cancelamento enquanto disponível e considera esses dados nos critérios de compatibilidade e rotas (RF-007).
 

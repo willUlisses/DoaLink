@@ -18,4 +18,6 @@ public interface CampanhaEmergencialRepository extends JpaRepository<CampanhaEme
 
     @EntityGraph(attributePaths = {"itens", "receptor"})
     Optional<CampanhaEmergencial> findWithItensById(Long id);
+
+    boolean existsByReceptorId(Long receptorId);
 }

@@ -58,21 +58,28 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/auth/recuperar-senha/validar").permitAll()
                         .requestMatchers(HttpMethod.POST, "/ofertas").hasRole("DOADOR")
                         .requestMatchers("/ofertas/minhas").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.GET, "/ofertas").hasRole("RECEPTOR")
                         .requestMatchers(HttpMethod.PATCH, "/ofertas/*/cancelar").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/ofertas/*/autorizar-transporte").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.POST, "/campanhas").hasRole("RECEPTOR")
                         .requestMatchers("/campanhas/minhas").hasRole("RECEPTOR")
                         .requestMatchers(HttpMethod.POST, "/necessidades").hasRole("RECEPTOR")
                         .requestMatchers("/necessidades/minhas").hasRole("RECEPTOR")
-                        .requestMatchers(HttpMethod.POST, "/disponibilidades").hasRole("TRANSPORTADOR")
-                        .requestMatchers("/disponibilidades/minhas").hasRole("TRANSPORTADOR")
-                        .requestMatchers(HttpMethod.PATCH, "/disponibilidades/*/cancelar").hasRole("TRANSPORTADOR")
-                        .requestMatchers(HttpMethod.PATCH, "/disponibilidades/*/encerrar").hasRole("TRANSPORTADOR")
+                        .requestMatchers(HttpMethod.GET, "/necessidades").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.GET, "/necessidades/*").hasAnyRole("DOADOR", "RECEPTOR")
                         .requestMatchers(HttpMethod.POST, "/reservas").hasRole("RECEPTOR")
                         .requestMatchers("/reservas/minhas/receptor").hasRole("RECEPTOR")
                         .requestMatchers("/reservas/minhas/doador").hasRole("DOADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/reservas/*/autorizar-transporte").hasRole("DOADOR")
                         .requestMatchers(HttpMethod.PATCH, "/reservas/*/cancelar").hasRole("RECEPTOR")
-                        .requestMatchers("/reservas/aguardando-transporte", "/reservas/minhas/transportador").hasRole("TRANSPORTADOR")
-                        .requestMatchers(HttpMethod.PATCH, "/reservas/*/vincular-transporte").hasRole("TRANSPORTADOR")
+                        .requestMatchers(
+                                "/reservas/aguardando-transporte",
+                                "/reservas/minhas/transportador",
+                                "/reservas/minhas/transportador/historico").hasRole("TRANSPORTADOR")
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/reservas/*/aceitar-transporte",
+                                "/reservas/*/confirmar-retirada",
+                                "/reservas/*/confirmar-entrega").hasRole("TRANSPORTADOR")
                         .requestMatchers(HttpMethod.PATCH, "/reservas/*/concluir").hasAnyRole("TRANSPORTADOR", "RECEPTOR")
                         .anyRequest().authenticated()
                 ).exceptionHandling(e -> e

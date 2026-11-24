@@ -1,113 +1,193 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Superfícies e base neutra */
+  --color-canvas: #F7F7F5;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F1F1EE;
+  --color-border: #E2E2E0;
+  --color-border-strong: #C9C9C5;
+
+  /* Hierarquia de texto (WCAG AA validada) */
+  --color-ink: #1E2530;
+  --color-ink-hover: #2B3544;
+  --color-ink-secondary: #59616A;
+  --color-ink-tertiary: #6B727B;
+  /* #747A80 tem contraste 4.05:1 sobre #F7F7F5 (AA apenas texto grande); #656B72 atinge 5.02:1 */
+  --color-ink-muted: #656B72;
+  --color-ink-subtle-decorative: #747A80;
+
+  /* Feedback semântico */
+  --color-danger: #AD3E2F;
+  --color-danger-hover: #913225;
+  --color-danger-soft: #FDF2F0;
+  --color-danger-border: #F2C6BF;
+
+  --color-warning: #9A5B00;
+  --color-warning-soft: #FEF6E7;
+  --color-warning-border: #F3D9A4;
+
+  --color-success: #237A53;
+  --color-success-soft: #EDF8F2;
+  --color-success-border: #B7E4CE;
+
+  --color-info: #226B9E;
+  --color-info-soft: #EEF6FC;
+  --color-info-border: #BBDDF3;
+
+  /* Cores dos Perfis (Figma + variações WCAG AA para texto branco >= 4.5:1) */
+  --color-doador: #E4572E;
+  --color-doador-aa: #C8431D;
+  --color-doador-hover: #B83B17;
+  --color-doador-soft: #FFF3EF;
+  --color-doador-border: #F8C9BA;
+
+  --color-transportador: #2A7FBA;
+  --color-transportador-aa: #226B9E;
+  --color-transportador-hover: #1B5883;
+  --color-transportador-soft: #EEF6FC;
+  --color-transportador-border: #BBDDF3;
+
+  --color-receptor: #3BA776;
+  --color-receptor-aa: #237A53;
+  --color-receptor-hover: #1C6242;
+  --color-receptor-soft: #EDF8F2;
+  --color-receptor-border: #B7E4CE;
+
+  /* Raios e sombras */
+  --radius-button: 8px;
+  --radius-card: 12px;
+  --radius-input: 12px;
+  --shadow-card: 0 1px 2px rgba(30, 37, 48, 0.05), 0 4px 12px rgba(30, 37, 48, 0.04);
+  --shadow-elevated: 0 8px 24px rgba(30, 37, 48, 0.10), 0 2px 6px rgba(30, 37, 48, 0.05);
+}
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --duration-exit: 140ms;
+  --duration-enter: 200ms;
+  --duration-move: 320ms;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  min-height: 100svh;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* Foco visível acessível consistente em todos os controles interativos */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Skip link para navegação por teclado */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* View Transitions API (React 19.3+) */
+@keyframes vt-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes vt-slide {
+  from { translate: var(--slide-offset, 24px); }
+  to { translate: 0; }
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root) {
+  display: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.vt-fade-out) {
+  animation: var(--duration-exit) ease-in vt-fade reverse;
+}
+
+::view-transition-new(.vt-fade-in) {
+  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-fade;
+}
+
+::view-transition-old(.nav-forward) {
+  --slide-offset: -32px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+
+::view-transition-new(.nav-forward) {
+  --slide-offset: 32px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+
+::view-transition-old(.nav-back) {
+  --slide-offset: 32px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+
+::view-transition-new(.nav-back) {
+  --slide-offset: -32px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }

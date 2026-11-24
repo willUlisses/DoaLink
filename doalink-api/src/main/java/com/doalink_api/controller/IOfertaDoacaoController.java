@@ -2,6 +2,7 @@ package com.doalink_api.controller;
 
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
+import com.doalink_api.dtos.response.ReservaEntregaResponse;
 import com.doalink_api.dtos.response.UsuarioAutenticado;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,14 +66,16 @@ public interface IOfertaDoacaoController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Página de ofertas retornada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Parâmetros de filtro ou paginação inválidos"),
-            @ApiResponse(responseCode = "401", description = "Não autenticado")
+            @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Apenas receptores podem listar ofertas disponíveis")
     })
     @GetMapping
     ResponseEntity<Page<OfertaDoacaoResponse>> listarDisponiveis(
             @ParameterObject @PageableDefault(size = 20, sort = "criadoEm") Pageable pageable,
             @Parameter(description = "Filtro opcional por tipo de item") @RequestParam(required = false) TipoItemDoacao categoria,
             @Parameter(description = "Filtro opcional por cidade") @RequestParam(required = false) String cidade,
-            @Parameter(description = "Filtro opcional por UF do estado (ex: SP)") @RequestParam(required = false) String estado);
+            @Parameter(description = "Filtro opcional por UF do estado (ex: SP)") @RequestParam(required = false) String estado,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 
     @Operation(
             summary = "Buscar oferta de doação por ID",
@@ -107,5 +110,21 @@ public interface IOfertaDoacaoController {
     @PatchMapping("/{id}/cancelar")
     ResponseEntity<Void> cancelar(
             @Parameter(description = "ID da oferta de doação a ser cancelada") @PathVariable Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
+
+    @Operation(
+            summary = "Autorizar início do transporte da oferta",
+            description = "Permite ao doador dono autorizar o início do transporte após um transportador aceitar a operação, gerando o código de retirada."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Início autorizado e código de retirada gerado"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado: Somente o dono da oferta pode autorizar"),
+            @ApiResponse(responseCode = "404", description = "Oferta ou reserva não encontrada"),
+            @ApiResponse(responseCode = "409", description = "Operação não está aguardando autorização do doador")
+    })
+    @PatchMapping("/{id}/autorizar-transporte")
+    ResponseEntity<ReservaEntregaResponse> autorizarInicioTransporte(
+            @Parameter(description = "ID da oferta de doação") @PathVariable Long id,
             @Parameter(hidden = true) @AuthenticationPrincipal UsuarioAutenticado usuario);
 }

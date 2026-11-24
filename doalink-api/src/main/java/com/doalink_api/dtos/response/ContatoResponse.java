@@ -13,7 +13,7 @@ public record ContatoResponse(
     public static ContatoResponse from(Usuario usuario) {
         return new ContatoResponse(
                 usuario.getNome(),
-                usuario.getEmail(),
+                usuario.getEmailContatoEfetivo(),
                 usuario.getTelefone()
         );
     }

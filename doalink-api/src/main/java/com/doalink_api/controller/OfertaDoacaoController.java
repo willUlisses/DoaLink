@@ -2,6 +2,7 @@ package com.doalink_api.controller;
 
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
+import com.doalink_api.dtos.response.ReservaEntregaResponse;
 import com.doalink_api.dtos.response.UsuarioAutenticado;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.service.OfertaDoacaoService;
@@ -48,8 +49,10 @@ public class OfertaDoacaoController implements IOfertaDoacaoController {
             Pageable pageable,
             @RequestParam(required = false) TipoItemDoacao categoria,
             @RequestParam(required = false) String cidade,
-            @RequestParam(required = false) String estado) {
-        return ResponseEntity.ok(ofertaService.listarDisponiveis(pageable, categoria, cidade, estado));
+            @RequestParam(required = false) String estado,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Long usuarioId = usuario != null ? usuario.id() : null;
+        return ResponseEntity.ok(ofertaService.listarDisponiveis(pageable, categoria, cidade, estado, usuarioId));
     }
 
     @Override
@@ -65,5 +68,12 @@ public class OfertaDoacaoController implements IOfertaDoacaoController {
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
         ofertaService.cancelar(usuario.id(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<ReservaEntregaResponse> autorizarInicioTransporte(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(ofertaService.autorizarInicioTransporte(usuario.id(), id));
     }
 }

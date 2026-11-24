@@ -64,6 +64,7 @@ class   NecessidadeDoacaoControllerTest {
 
         @BeforeEach
         void setUp() {
+                SecurityContextHolder.clearContext();
                 NecessidadeDoacaoController controller = new NecessidadeDoacaoController(necessidadeService);
                 mockMvc = MockMvcBuilders.standaloneSetup(controller)
                                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -170,16 +171,26 @@ class   NecessidadeDoacaoControllerTest {
         }
 
         @Test
-        @DisplayName("GET /necessidades: consulta paginada → 200 OK")
+        @DisplayName("GET /necessidades: consulta paginada para Doador → 200 OK")
         void listar_deveRetornar200() throws Exception {
                 org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0,
                                 20);
-                when(necessidadeService.listarPorSituacao(eq(SituacaoNecessidade.ABERTA), any()))
+                when(necessidadeService.listarPorSituacao(eq(SituacaoNecessidade.ABERTA), any(), isNull()))
                                 .thenReturn(new PageImpl<>(List.of(responseExemplo()), pageable, 1));
 
                 mockMvc.perform(get("/necessidades"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.content[0].id").value(1L));
+        }
+
+        @Test
+        @DisplayName("GET /necessidades: receptor tentando listar necessidades gerais → 403 Forbidden")
+        void listar_receptor_deveRetornar403() throws Exception {
+                when(necessidadeService.listarPorSituacao(eq(SituacaoNecessidade.ABERTA), any(), eq(1L)))
+                                .thenThrow(new ForbiddenException("Receptores devem consultar apenas suas próprias necessidades"));
+
+                mockMvc.perform(get("/necessidades").with(AS_RECEPTOR))
+                                .andExpect(status().isForbidden());
         }
 
         @Test
@@ -194,7 +205,7 @@ class   NecessidadeDoacaoControllerTest {
         @Test
         @DisplayName("GET /necessidades/{id}: existente → 200 OK")
         void buscarPorId_existente_deveRetornar200() throws Exception {
-                when(necessidadeService.buscarPorId(1L)).thenReturn(responseExemplo());
+                when(necessidadeService.buscarPorId(1L, null)).thenReturn(responseExemplo());
 
                 mockMvc.perform(get("/necessidades/1"))
                                 .andExpect(status().isOk())
@@ -202,9 +213,19 @@ class   NecessidadeDoacaoControllerTest {
         }
 
         @Test
+        @DisplayName("GET /necessidades/{id}: receptor consultando necessidade de outro receptor → 403 Forbidden")
+        void buscarPorId_receptorTerceiro_deveRetornar403() throws Exception {
+                when(necessidadeService.buscarPorId(2L, 1L))
+                                .thenThrow(new ForbiddenException("Você não tem permissão para visualizar necessidades de outro receptor"));
+
+                mockMvc.perform(get("/necessidades/2").with(AS_RECEPTOR))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
         @DisplayName("GET /necessidades/{id}: inexistente → 404 Not Found")
         void buscarPorId_inexistente_deveRetornar404() throws Exception {
-                when(necessidadeService.buscarPorId(99L))
+                when(necessidadeService.buscarPorId(99L, null))
                                 .thenThrow(new NotFoundException("Necessidade não encontrada: 99"));
 
                 mockMvc.perform(get("/necessidades/99"))

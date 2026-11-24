@@ -23,4 +23,6 @@ public interface OfertaDoacaoRepository extends JpaRepository<OfertaDoacao, Long
     // Busca por id com itens já carregados (evita N+1 ao montar o response)
     @EntityGraph(attributePaths = "itens")
     Optional<OfertaDoacao> findWithItensById(Long id);
+
+    boolean existsByDoadorId(Long doadorId);
 }

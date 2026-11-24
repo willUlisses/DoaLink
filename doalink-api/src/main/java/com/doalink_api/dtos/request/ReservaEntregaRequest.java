@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record ReservaEntregaRequest(
         @NotNull Long ofertaId,
-        @NotNull Boolean precisaTransporte
+        Boolean precisaTransporte
 ) {
 }
 

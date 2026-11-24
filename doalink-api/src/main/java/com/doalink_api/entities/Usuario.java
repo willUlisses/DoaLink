@@ -29,6 +29,9 @@ public abstract class Usuario {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "email_contato")
+    private String emailContato;
+
     @Column(nullable = false)
     private String senha;
 
@@ -65,9 +68,22 @@ public abstract class Usuario {
         this.documento = documento;
         this.nome = nome;
         this.email = email;
+        this.emailContato = email;
         this.senha = senha;
+        this.telefone = telefone;
         this.tipoUsuario = tipoUsuario;
         this.tipoPessoa = tipoPessoa;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+        if (this.emailContato == null) {
+            this.emailContato = email;
+        }
+    }
+
+    public String getEmailContatoEfetivo() {
+        return (emailContato != null && !emailContato.isBlank()) ? emailContato : email;
     }
 
 }
