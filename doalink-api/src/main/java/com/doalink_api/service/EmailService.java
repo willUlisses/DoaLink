@@ -18,6 +18,9 @@ public class EmailService {
     @Value("${app.recuperacao-senha.url-base}")
     private String urlBase;
 
+    @Value("${app.mail.from}")
+    private String from;
+
     public void enviarCodigoVerificacao(String destinatario, String nome, String codigo) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -25,7 +28,7 @@ public class EmailService {
 
             helper.setTo(destinatario);
             helper.setSubject("Código de confirmação — DoaLink");
-            helper.setFrom("noreply@doalink.com.br");
+            helper.setFrom(from);
             helper.setText(construirHtmlCodigo(nome, codigo), true);
 
             mailSender.send(message);
@@ -107,7 +110,7 @@ public class EmailService {
 
             helper.setTo(destinatario);
             helper.setSubject("Recuperação de senha — DoaLink");
-            helper.setFrom("noreply@doalink.com.br");
+            helper.setFrom(from);
             helper.setText(construirHtml(nome, token), true);
 
             mailSender.send(message);

@@ -160,6 +160,22 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("Deve rejeitar login quando e-mail for inexistente retornando 401 Unauthorized com mensagem padronizada")
+    void deveRetornar401QuandoEmailInexistenteNoLogin() throws Exception {
+        LoginRequest req = new LoginRequest("inexistente@teste.com", "senhaQualquer");
+
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new org.springframework.security.core.userdetails.UsernameNotFoundException("Usuário não encontrado"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message").value("E-mail ou senha inválidos"));
+    }
+
+    @Test
     @DisplayName("Deve rejeitar requisição de cadastro com dados inválidos retornando 400 Bad Request")
     void deveRetornar400QuandoDadosInvalidos() throws Exception {
         String bodyInvalido = "{\"email\":\"email-invalido\",\"nome\":\"\"}";
@@ -195,6 +211,16 @@ class AuthControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(authService, times(1)).logout("meu-refresh-token");
+        verify(cookieService, times(1)).limpar(any());
+    }
+
+    @Test
+    @DisplayName("Deve realizar logout mesmo sem cookie de refresh token e retornar 204 No Content limpando os cookies (idempotência)")
+    void deveRealizarLogoutSemCookieComSucesso() throws Exception {
+        mockMvc.perform(post("/auth/logout"))
+                .andExpect(status().isNoContent());
+
+        verify(authService, times(1)).logout(null);
         verify(cookieService, times(1)).limpar(any());
     }
 }
