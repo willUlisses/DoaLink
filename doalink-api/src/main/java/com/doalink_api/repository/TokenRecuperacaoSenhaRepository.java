@@ -16,4 +16,8 @@ public interface TokenRecuperacaoSenhaRepository extends JpaRepository<TokenRecu
     @Modifying
     @Query("DELETE FROM TokenRecuperacaoSenha t WHERE t.expiracao < :agora")
     void deletarExpirados(@Param("agora") Instant agora);
+
+    @Modifying
+    @Query("DELETE FROM TokenRecuperacaoSenha t WHERE t.usuario.id = :usuarioId")
+    void deletarPorUsuarioId(@Param("usuarioId") Long usuarioId);
 }

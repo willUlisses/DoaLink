@@ -199,4 +199,25 @@ class AuthServiceTest {
             verify(verificacaoEmailService, times(1)).reenviarCodigo("doador@teste.com");
         }
     }
+
+    @Nested
+    @DisplayName("Logout")
+    class LogoutTests {
+
+        @Test
+        @DisplayName("Deve revogar refresh token quando token for fornecido")
+        void deveRevogarRefreshTokenQuandoInformado() {
+            authService.logout("token-valido");
+
+            verify(refreshTokenService, times(1)).revogar("token-valido");
+        }
+
+        @Test
+        @DisplayName("Deve executar logout sem falhas quando refresh token for nulo (idempotente)")
+        void deveExecutarLogoutSemFalhasQuandoTokenForNulo() {
+            authService.logout(null);
+
+            verifyNoInteractions(refreshTokenService);
+        }
+    }
 }

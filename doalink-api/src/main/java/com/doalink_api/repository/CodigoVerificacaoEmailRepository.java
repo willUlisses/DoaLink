@@ -22,4 +22,8 @@ public interface CodigoVerificacaoEmailRepository extends JpaRepository<CodigoVe
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM CodigoVerificacaoEmail c WHERE c.expiracao < :agora")
     void deletarExpirados(@Param("agora") Instant agora);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM CodigoVerificacaoEmail c WHERE c.usuario.id = :usuarioId")
+    void deletarPorUsuarioId(@Param("usuarioId") Long usuarioId);
 }

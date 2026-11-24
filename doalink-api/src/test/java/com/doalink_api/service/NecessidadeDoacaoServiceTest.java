@@ -181,4 +181,33 @@ class NecessidadeDoacaoServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Necessidade não encontrada: 99");
     }
+
+    @Test
+    @DisplayName("listarPorSituacao: receptor tentando listar necessidades gerais deve receber ForbiddenException")
+    void listarPorSituacao_receptor_deveLancarForbidden() {
+        when(receptorRepository.existsById(2L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.listarPorSituacao(
+                SituacaoNecessidade.ABERTA, PageRequest.of(0, 10), 2L))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("buscarPorId: receptor visualiza apenas a própria necessidade e é bloqueado na de terceiro")
+    void buscarPorId_receptor_regrasPropriedade() {
+        NecessidadeDoacao n = new NecessidadeDoacao();
+        n.setId(5L);
+        n.setReceptor(receptor);
+        n.setLocalEntrega(com.doalink_api.mapper.EnderecoMapper.toEndereco(enderecoReq));
+
+        when(necessidadeRepository.findWithItensById(5L)).thenReturn(Optional.of(n));
+        when(receptorRepository.existsById(1L)).thenReturn(true);
+        when(receptorRepository.existsById(99L)).thenReturn(true);
+
+        NecessidadeDoacaoResponse propria = service.buscarPorId(5L, 1L);
+        assertThat(propria.id()).isEqualTo(5L);
+
+        assertThatThrownBy(() -> service.buscarPorId(5L, 99L))
+                .isInstanceOf(ForbiddenException.class);
+    }
 }

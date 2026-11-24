@@ -1,0 +1,12 @@
+package com.doalink_api.entities.enums;
+
+public enum SituacaoReservaEntrega {
+    AGUARDANDO_TRANSPORTE,
+    AGUARDANDO_RETIRADA,
+    AGUARDANDO_AUTORIZACAO_DOADOR,
+    AGUARDANDO_CONFIRMACAO_RETIRADA,
+    EM_TRANSPORTE,
+    CONCLUIDA,
+    CANCELADA,
+    EM_INVESTIGACAO
+}

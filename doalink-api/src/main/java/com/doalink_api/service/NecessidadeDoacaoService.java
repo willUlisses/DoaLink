@@ -52,6 +52,17 @@ public class NecessidadeDoacaoService {
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
     public Page<NecessidadeDoacaoResponse> listarPorSituacao(SituacaoNecessidade situacao, Pageable pageable) {
+        return listarPorSituacao(situacao, pageable, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<NecessidadeDoacaoResponse> listarPorSituacao(
+            SituacaoNecessidade situacao,
+            Pageable pageable,
+            Long usuarioId) {
+        if (usuarioId != null && receptorRepository.existsById(usuarioId)) {
+            throw new ForbiddenException("Receptores devem consultar apenas suas próprias necessidades");
+        }
         return necessidadeRepository.findBySituacao(situacao, pageable)
                 .map(NecessidadeDoacaoResponse::from);
     }
@@ -61,8 +72,22 @@ public class NecessidadeDoacaoService {
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
     public NecessidadeDoacaoResponse buscarPorId(Long id) {
-        return necessidadeRepository.findWithItensById(id)
-                .map(NecessidadeDoacaoResponse::from)
+        return buscarPorId(id, null);
+    }
+
+    @Transactional(readOnly = true)
+    public NecessidadeDoacaoResponse buscarPorId(Long id, Long usuarioId) {
+        NecessidadeDoacao necessidade = necessidadeRepository.findWithItensById(id)
                 .orElseThrow(() -> new NotFoundException("Necessidade não encontrada: " + id));
+
+        if (usuarioId != null && receptorRepository.existsById(usuarioId)) {
+            boolean ehDono = necessidade.getReceptor() != null
+                    && necessidade.getReceptor().getId().equals(usuarioId);
+            if (!ehDono) {
+                throw new ForbiddenException("Você não tem permissão para visualizar necessidades de outro receptor");
+            }
+        }
+
+        return NecessidadeDoacaoResponse.from(necessidade);
     }
 }

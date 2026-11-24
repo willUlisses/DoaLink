@@ -4,8 +4,8 @@ services:
     container_name: doalink-banco
     environment:
       POSTGRES_DB: doalink_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:

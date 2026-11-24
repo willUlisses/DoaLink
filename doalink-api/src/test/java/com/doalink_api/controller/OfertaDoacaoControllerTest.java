@@ -64,16 +64,29 @@ class OfertaDoacaoControllerTest {
                 return request;
         };
 
+        private static final RequestPostProcessor AS_TRANSPORTADOR = request -> {
+                var auth = new UsernamePasswordAuthenticationToken(
+                                new UsuarioAutenticado(1L, "transp@email.com"), null,
+                                List.of(new SimpleGrantedAuthority("ROLE_TRANSPORTADOR")));
+                var ctx = new SecurityContextImpl(auth);
+                SecurityContextHolder.setContext(ctx);
+                request.setAttribute("SPRING_SECURITY_CONTEXT", ctx);
+                return request;
+        };
+
         @BeforeEach
         void setUp() {
                 // InheritableThreadLocal garante que o SecurityContext seja visível
                 // na thread do dispatcher do MockMvc (que é uma thread filha)
+                SecurityContextHolder.clearContext();
                 SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
                 mockMvc = MockMvcBuilders
                                 .standaloneSetup(new OfertaDoacaoController(ofertaService))
                                 .setControllerAdvice(new GlobalExceptionHandler())
-                                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                                .setCustomArgumentResolvers(
+                                                new AuthenticationPrincipalArgumentResolver(),
+                                                new org.springframework.data.web.PageableHandlerMethodArgumentResolver())
                                 .build();
         }
 
@@ -189,6 +202,16 @@ class OfertaDoacaoControllerTest {
                                 .andExpect(jsonPath("$[0].id").value(10));
         }
 
+        @Test
+        @DisplayName("GET /ofertas: doador tentando listar ofertas gerais → 403 Forbidden")
+        void listarDisponiveis_doador_deveRetornar403() throws Exception {
+                when(ofertaService.listarDisponiveis(any(), isNull(), isNull(), isNull(), eq(1L)))
+                                .thenThrow(new ForbiddenException("Doadores só podem visualizar suas próprias ofertas"));
+
+                mockMvc.perform(get("/ofertas").with(AS_DOADOR))
+                                .andExpect(status().isForbidden());
+        }
+
         // -------------------------------------------------------------------------
         // GET /ofertas/{id}
         // -------------------------------------------------------------------------
@@ -196,7 +219,7 @@ class OfertaDoacaoControllerTest {
         @Test
         @DisplayName("GET /ofertas/{id}: oferta existente → 200")
         void buscarPorId_deveRetornar200() throws Exception {
-                when(ofertaService.buscarPorId(10L)).thenReturn(responseExemplo());
+                when(ofertaService.buscarPorId(10L, 1L)).thenReturn(responseExemplo());
 
                 mockMvc.perform(get("/ofertas/10").with(AS_DOADOR))
                                 .andExpect(status().isOk())
@@ -204,9 +227,20 @@ class OfertaDoacaoControllerTest {
         }
 
         @Test
+        @DisplayName("GET /ofertas/{id}: transportador tentando ver oferta não RESERVADA → 403")
+        void buscarPorId_transportadorSemReservada_deveRetornar403() throws Exception {
+                when(ofertaService.buscarPorId(10L, 1L))
+                                .thenThrow(new ForbiddenException("Transportadores só podem visualizar ofertas RESERVADAS ou vinculadas a eles"));
+
+                mockMvc.perform(get("/ofertas/10").with(AS_TRANSPORTADOR))
+                                .andExpect(status().isForbidden())
+                                .andExpect(jsonPath("$.status").value(403));
+        }
+
+        @Test
         @DisplayName("GET /ofertas/{id}: oferta inexistente → 404")
         void buscarPorId_deveRetornar404() throws Exception {
-                when(ofertaService.buscarPorId(999L))
+                when(ofertaService.buscarPorId(999L, 1L))
                                 .thenThrow(new NotFoundException("Oferta não encontrada: 999"));
 
                 mockMvc.perform(get("/ofertas/999").with(AS_DOADOR))
@@ -246,5 +280,38 @@ class OfertaDoacaoControllerTest {
 
                 mockMvc.perform(patch("/ofertas/999/cancelar").with(AS_DOADOR))
                                 .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("PATCH /ofertas/{id}/autorizar-transporte: doador autoriza início → 200")
+        void autorizarInicioTransporte_deveRetornar200() throws Exception {
+                ReservaEntregaResponse resp = new ReservaEntregaResponse(
+                                50L,
+                                com.doalink_api.entities.enums.SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA,
+                                true,
+                                10L,
+                                SituacaoOferta.RESERVADA,
+                                3L,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                List.of(),
+                                LocalDateTime.now(),
+                                LocalDateTime.now(),
+                                null,
+                                null,
+                                "123456",
+                                null,
+                                null,
+                                List.of(),
+                                LocalDateTime.now(),
+                                LocalDateTime.now());
+                when(ofertaService.autorizarInicioTransporte(1L, 10L)).thenReturn(resp);
+
+                mockMvc.perform(patch("/ofertas/10/autorizar-transporte").with(AS_DOADOR))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.codigoRetirada").value("123456"));
         }
 }

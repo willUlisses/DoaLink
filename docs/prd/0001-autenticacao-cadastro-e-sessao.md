@@ -1,17 +1,16 @@
 # PRD 0001: Autenticação, Cadastro e Sessão
 
-- **Status:** Proposto
-- **Data:** 2026-11-09
+- **Status:** Aceito (atualizado conforme implementação)
+- **Data:** 2026-11-09 (Atualizado: 2026-11-22)
 - **Especificações:** [Spec 0001 — Autenticação, Cadastro de Usuários e Gestão de Sessão](../specs/0001-autenticacao-e-cadastro.md)
 
 ---
 
 ## Descrição geral
 
-O DoaLink permite o cadastro de participantes em três perfis distintos: **Doador**, **Transportador** e **Receptor** (ONGs). Cada perfil tem dados específicos além dos dados comuns. O sistema gera um identificador único por cadastro e controla o acesso via sessão stateless com cookies HttpOnly.
+O DoaLink permite o cadastro de participantes em três perfis distintos: **Doador**, **Transportador** e **Receptor** (ONGs). Cada perfil tem dados específicos além dos dados comuns. O sistema gera um identificador único por cadastro, exige confirmação de e-mail por código (`RF-010`) e controla o acesso via sessão stateless com cookies HttpOnly.
 
 O sistema **não faz**:
-- Confirmação de e-mail automática no cadastro (requisito desejável separado — RF-010).
 - Login social (OAuth2, Google, etc.).
 - Suporte a múltiplos perfis em um mesmo cadastro (ver Decisões pendentes).
 - Troca de perfil após o cadastro.
@@ -42,7 +41,7 @@ O sistema **não faz**:
 | \*CPF ¹ | CHAR(11) | 000.000.000-00 | Armazenar apenas os 11 dígitos. Validar dígitos verificadores e unicidade. Aplicável à pessoa física. |
 | \*CNPJ ¹ | CHAR(14) | 00.000.000/0000-00 | Armazenar apenas os 14 dígitos. Validar dígitos verificadores e unicidade. Aplicável à pessoa jurídica. |
 | \*E-mail | VARCHAR(254) | — | Formato de e-mail válido (não é case-sensitive). Único no sistema. |
-| \*Senha | hash | — | Nunca armazenada em texto puro. Mínimo 8 caracteres, máximo 72 caracteres. Sem exigência de caracteres especiais. |
+| \*Senha | hash | — | Nunca armazenada em texto puro. Mínimo 8 caracteres. Limite atual da API: máximo 60 caracteres para Doador/Transportador (`CadastroComumRequest`) e 72 caracteres para Receptor (`CadastroReceptorRequest`) e redefinição (`RedefinirSenhaRequest`). Sem exigência de caracteres especiais. |
 | Número de identificação ² | BIGINT ou UUID | — | Gerado automaticamente pelo sistema; não é editável nem exibido diretamente ao participante. |
 
 ¹ CPF e CNPJ são excludentes: informa-se exatamente um. Receptor informa sempre CNPJ.
@@ -75,7 +74,7 @@ O Transportador preenche apenas os dados comuns.
 
 - **CA-001-1:** Dado dados obrigatórios válidos e inéditos, quando o participante enviar o cadastro, então o sistema cria o participante e gera seu número de identificação.
 - **CA-001-2:** Dado CPF/CNPJ ou e-mail inválidos ou já associados a outro cadastro, quando o participante tentar cadastrar, então o sistema rejeita o cadastro e informa o campo em conflito.
-- **CA-001-3:** Dado uma senha com menos de 8 caracteres ou mais de 72 caracteres, quando o participante tentar cadastrar, então o sistema rejeita e informa o critério não atendido.
+- **CA-001-3:** Dado uma senha com menos de 8 caracteres ou acima do limite máximo aceito para o perfil (60 para Doador/Transportador; 72 para Receptor), quando o participante tentar cadastrar, então o sistema rejeita e informa o critério não atendido.
 - **CA-001-4:** Dado um cadastro de Receptor sem CNPJ, sem CEP, sem estado, sem cidade, sem bairro ou sem logradouro, quando o participante tentar cadastrar, então o sistema rejeita e informa os campos ausentes.
 - **CA-001-5:** Dado um cadastro de Receptor sem número de endereço, quando o participante enviar o cadastro, então o sistema registra `S/N` no campo número.
 
@@ -154,6 +153,7 @@ O Transportador preenche apenas os dados comuns.
 | Validade do código de confirmação de e-mail | RF-010 | Resolvido: 90 segundos (ver Spec 0001) |
 | Múltiplos perfis por cadastro | RF-001 | Não suportado nesta versão — decisão futura pendente |
 | Número de identificação: forma de exibição ao participante | RF-001 | Em aberto |
+| Padronização do limite máximo de senha entre perfis (60 vs. 72 caracteres do BCrypt) | RF-001, RF-003 | Em aberto — atualmente Doador/Transportador aceitam até 60 e Receptor/Redefinição até 72 na API |
 
 ---
 

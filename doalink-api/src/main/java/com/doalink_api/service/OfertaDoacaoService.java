@@ -1,15 +1,20 @@
 package com.doalink_api.service;
 
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
+import com.doalink_api.dtos.response.ContatoResponse;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
+import com.doalink_api.dtos.response.ReservaEntregaResponse;
+import com.doalink_api.entities.CodigoTransporte;
 import com.doalink_api.entities.OfertaDoacao;
+import com.doalink_api.entities.ReservaEntrega;
 import com.doalink_api.entities.enums.SituacaoOferta;
+import com.doalink_api.entities.enums.SituacaoReservaEntrega;
+import com.doalink_api.entities.enums.TipoCodigoTransporte;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
 import com.doalink_api.mapper.OfertaDoacaoMapper;
-import com.doalink_api.repository.DoadorRepository;
-import com.doalink_api.repository.OfertaDoacaoRepository;
+import com.doalink_api.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,7 +22,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +34,11 @@ public class OfertaDoacaoService {
 
     private final OfertaDoacaoRepository ofertaRepository;
     private final DoadorRepository doadorRepository;
+    private final TransportadorRepository transportadorRepository;
+    private final ReservaEntregaRepository reservaRepository;
+    private final CodigoTransporteRepository codigoTransporteRepository;
+    private final CodigoTransporteService codigoTransporteService;
+    private final ReservaEntregaService reservaEntregaService;
 
     // -------------------------------------------------------------------------
     // Criar oferta
@@ -43,10 +57,54 @@ public class OfertaDoacaoService {
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
     public List<OfertaDoacaoResponse> listarMinhas(Long usuarioId) {
-        return ofertaRepository.findByDoadorIdOrderByCriadoEmDesc(usuarioId)
+        List<OfertaDoacao> ofertas = ofertaRepository.findByDoadorIdOrderByCriadoEmDesc(usuarioId);
+        if (ofertas.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> ofertaIds = ofertas.stream().map(OfertaDoacao::getId).toList();
+        Map<Long, ReservaEntrega> reservaPorOferta = reservaRepository
+                .findByOfertaIdInAndSituacaoNot(ofertaIds, SituacaoReservaEntrega.CANCELADA)
                 .stream()
-                .map(OfertaDoacaoResponse::from)
+                .filter(r -> r.getOferta() != null)
+                .collect(Collectors.toMap(
+                        r -> r.getOferta().getId(),
+                        r -> r,
+                        (primeiro, segundo) -> primeiro
+                ));
+
+        List<Long> reservasAguardandoRetiradaIds = reservaPorOferta.values().stream()
+                .filter(r -> r.getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA)
+                .map(ReservaEntrega::getId)
                 .toList();
+
+        Map<Long, CodigoTransporte> codigosRetiradaPorReserva = reservasAguardandoRetiradaIds.isEmpty()
+                ? Map.of()
+                : codigoTransporteRepository
+                        .findByReservaIdInAndTipoAndInvalidadoFalseAndUtilizadoFalse(
+                                reservasAguardandoRetiradaIds, TipoCodigoTransporte.RETIRADA)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                c -> c.getReserva().getId(),
+                                c -> c,
+                                (primeiro, segundo) -> primeiro
+                        ));
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        return ofertas.stream().map(oferta -> {
+            ReservaEntrega reservaAtiva = reservaPorOferta.get(oferta.getId());
+            ContatoResponse receptorContato = (reservaAtiva != null && reservaAtiva.getReceptor() != null)
+                    ? ContatoResponse.from(reservaAtiva.getReceptor())
+                    : null;
+            String codigoRetirada = null;
+            if (reservaAtiva != null
+                    && reservaAtiva.getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA) {
+                CodigoTransporte cod = codigosRetiradaPorReserva.get(reservaAtiva.getId());
+                codigoRetirada = codigoTransporteService.reconstruirCodigoAtivo(cod, agora);
+            }
+            return OfertaDoacaoResponse.from(oferta, true, receptorContato, reservaAtiva, codigoRetirada);
+        }).toList();
     }
 
     // -------------------------------------------------------------------------
@@ -58,18 +116,29 @@ public class OfertaDoacaoService {
             TipoItemDoacao categoria,
             String cidade,
             String estado) {
+        return listarDisponiveis(pageable, categoria, cidade, estado, null);
+    }
 
-        // Quando nenhum filtro é informado busca todas as DISPONIVEL
-        if (categoria == null && cidade == null && estado == null) {
-            return ofertaRepository.findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
-                    .map(OfertaDoacaoResponse::from);
+    @Transactional(readOnly = true)
+    public Page<OfertaDoacaoResponse> listarDisponiveis(
+            Pageable pageable,
+            TipoItemDoacao categoria,
+            String cidade,
+            String estado,
+            Long usuarioId) {
+
+        if (usuarioId != null && doadorRepository.existsById(usuarioId)) {
+            throw new ForbiddenException("Doadores só podem visualizar suas próprias ofertas");
         }
 
-        // Com filtros aplica predicados em memória sobre a página e reconstrói PageImpl.
-        // Nota: total pode divergir do count real — queries JPA especializadas são a evolução futura.
+        if (categoria == null && cidade == null && estado == null) {
+            return ofertaRepository.findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
+                    .map(o -> OfertaDoacaoResponse.from(o, false));
+        }
+
         Page<OfertaDoacaoResponse> pagina = ofertaRepository
                 .findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
-                .map(OfertaDoacaoResponse::from);
+                .map(o -> OfertaDoacaoResponse.from(o, false));
 
         List<OfertaDoacaoResponse> filtrados = pagina.getContent().stream()
                 .filter(r -> matchesFiltros(r, categoria, cidade, estado))
@@ -82,10 +151,73 @@ public class OfertaDoacaoService {
     // Buscar por id
     // -------------------------------------------------------------------------
     @Transactional(readOnly = true)
-    public OfertaDoacaoResponse buscarPorId(Long id) {
-        return ofertaRepository.findWithItensById(id)
-                .map(OfertaDoacaoResponse::from)
+    public OfertaDoacaoResponse buscarPorId(Long id, Long usuarioId) {
+        OfertaDoacao oferta = ofertaRepository.findWithItensById(id)
                 .orElseThrow(() -> new NotFoundException("Oferta não encontrada: " + id));
+
+        boolean isDono = oferta.getDoador() != null && oferta.getDoador().getId().equals(usuarioId);
+
+        Optional<ReservaEntrega> reservaAtiva = reservaRepository
+                .findFirstByOfertaIdAndSituacaoNot(id, SituacaoReservaEntrega.CANCELADA);
+
+        boolean isReceptorDaReserva = reservaAtiva
+                .map(r -> r.getReceptor() != null && r.getReceptor().getId().equals(usuarioId))
+                .orElse(false);
+
+        boolean isTransportadorVinculado = reservaAtiva
+                .map(ReservaEntrega::getTransportador)
+                .map(t -> t.getId().equals(usuarioId))
+                .orElse(false);
+
+        if (!isDono && doadorRepository.existsById(usuarioId)) {
+            throw new ForbiddenException("Doadores só podem visualizar suas próprias ofertas");
+        }
+
+        boolean isTransportador = !isTransportadorVinculado && transportadorRepository.existsById(usuarioId);
+        if (isTransportador && oferta.getSituacao() != SituacaoOferta.RESERVADA) {
+            throw new ForbiddenException(
+                    "Transportadores só podem visualizar ofertas RESERVADAS ou vinculadas a eles");
+        }
+
+        if (!isDono
+                && !isReceptorDaReserva
+                && !isTransportadorVinculado
+                && !isTransportador
+                && oferta.getSituacao() != SituacaoOferta.DISPONIVEL) {
+            throw new ForbiddenException(
+                    "Esta oferta não está disponível para visualização por outra organização");
+        }
+
+        boolean podeVerDetalhesCompletos = isDono || isReceptorDaReserva || isTransportadorVinculado;
+        ContatoResponse receptorContato = podeVerDetalhesCompletos
+                ? reservaAtiva.map(ReservaEntrega::getReceptor).map(ContatoResponse::from).orElse(null)
+                : null;
+
+        String codigoRetirada = null;
+        if (isDono && reservaAtiva.isPresent()
+                && reservaAtiva.get().getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA) {
+            CodigoTransporte cod = codigoTransporteRepository
+                    .findFirstByReservaIdAndTipoAndInvalidadoFalseAndUtilizadoFalseOrderByCriadoEmDesc(
+                            reservaAtiva.get().getId(), TipoCodigoTransporte.RETIRADA)
+                    .orElse(null);
+            codigoRetirada = codigoTransporteService.reconstruirCodigoAtivo(cod, LocalDateTime.now());
+        }
+
+        return OfertaDoacaoResponse.from(
+                oferta,
+                podeVerDetalhesCompletos,
+                receptorContato,
+                podeVerDetalhesCompletos ? reservaAtiva.orElse(null) : null,
+                codigoRetirada
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Autorizar início do transporte (atalho pela oferta)
+    // -------------------------------------------------------------------------
+    @Transactional
+    public ReservaEntregaResponse autorizarInicioTransporte(Long usuarioId, Long ofertaId) {
+        return reservaEntregaService.autorizarInicioTransportePorOferta(usuarioId, ofertaId);
     }
 
     // -------------------------------------------------------------------------
@@ -103,7 +235,7 @@ public class OfertaDoacaoService {
         if (oferta.getSituacao() != SituacaoOferta.DISPONIVEL) {
             throw new ForbiddenException(
                     "Só é possível cancelar ofertas com situação DISPONIVEL. Situação atual: "
-                    + oferta.getSituacao());
+                            + oferta.getSituacao());
         }
 
         oferta.setSituacao(SituacaoOferta.CANCELADA);

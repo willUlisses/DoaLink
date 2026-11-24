@@ -23,4 +23,6 @@ public interface NecessidadeDoacaoRepository extends JpaRepository<NecessidadeDo
     // Busca por id com itens e receptor já carregados (evita N+1 ao montar o response)
     @EntityGraph(attributePaths = {"itens", "receptor"})
     Optional<NecessidadeDoacao> findWithItensById(Long id);
+
+    boolean existsByReceptorId(Long receptorId);
 }

@@ -41,6 +41,10 @@ public class OfertaDoacao {
     @Column(name = "atualizado_em")
     private LocalDateTime atualizadoEm;
 
+    @Version
+    @Column(nullable = false)
+    private Long versao;
+
     public OfertaDoacao(Doador doador, Endereco localRetirada) {
         this.doador = doador;
         this.localRetirada = localRetirada;
