@@ -146,11 +146,10 @@ public interface IAuthController {
 
     @Operation(
             summary = "Logout de usuário",
-            description = "Invalida a sessão/refresh token ativo e remove os cookies de autenticação do cliente."
+            description = "Invalida a sessão/refresh token ativo e remove os cookies de autenticação do cliente. Operação idempotente que garante a remoção dos cookies mesmo se não houver sessão ativa."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Logout realizado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Sessão inválida ou não encontrada")
+            @ApiResponse(responseCode = "204", description = "Logout realizado com sucesso (operação idempotente; cookies de autenticação são sempre invalidados no cliente)")
     })
     @PostMapping("/logout")
     ResponseEntity<Void> logout(
