@@ -1,9 +1,9 @@
-# Spec 0006: Reserva de Oferta e Vínculo de Transporte
+# Spec 0006: Reserva de Oferta e Fluxo de Transporte
 
-- **Status:** Proposto
-- **Requisitos:** RF-010, CA-010-1 a CA-010-7, RNF-01 a RNF-03 do [PRD 0006](../prd/0006-reserva-e-vinculo-de-transporte.md)
-- **Decisões:** [ADR 0010](../adr/0012-vinculo-entre-oferta-receptor-e-transporte.md)
-- **Depende de:** [Spec 0002](0002-oferta-de-doacao.md), [Spec 0005](0005-disponibilidade-de-transporte.md)
+- **Status:** Atualizado pelo [PRD 0007](../prd/0007-fluxo-de-transporte-por-codigos-de-seguranca.md) e [ADR 0013](../adr/0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md)
+- **Requisitos:** RF-010 ([PRD 0006](../prd/0006-reserva-e-vinculo-de-transporte.md)) e RF-011 a RF-015 ([PRD 0007](../prd/0007-fluxo-de-transporte-por-codigos-de-seguranca.md))
+- **Decisões:** [ADR 0013](../adr/0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md) (substitui [ADR 0012](../adr/0012-vinculo-entre-oferta-receptor-e-transporte.md))
+- **Depende de:** [Spec 0002](0002-oferta-de-doacao.md)
 
 ---
 

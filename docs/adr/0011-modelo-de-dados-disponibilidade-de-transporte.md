@@ -1,6 +1,6 @@
 # ADR 0009: Modelo de dados para disponibilidade de transporte (RF-005)
 
-- **Status:** Proposto
+- **Status:** Substituído por [ADR 0013](0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md)
 - **Data:** 2026-11-16
 
 ## Contexto

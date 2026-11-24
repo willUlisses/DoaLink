@@ -1,6 +1,6 @@
 # ADR 0010: Vínculo entre oferta, receptor e transporte via entidade de reserva
 
-- **Status:** Proposto
+- **Status:** Substituído por [ADR 0013](0013-fluxo-de-transporte-por-codigos-com-hash-e-suspensao-por-expiracao.md)
 - **Data:** 2026-11-17
 
 ## Contexto
