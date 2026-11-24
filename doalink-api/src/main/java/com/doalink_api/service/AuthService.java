@@ -56,7 +56,6 @@ public class AuthService {
         String email = req.email().trim().toLowerCase();
 
         validarUnicidade(email, documento);
-        // TODO: Configurar cliente pra chamar api de validar cnpj
 
         Receptor receptor = new Receptor();
         receptor.setEnderecoOrganizacao(EnderecoMapper.toEndereco(req.endereco()));
@@ -110,7 +109,6 @@ public class AuthService {
         String email = req.email().trim().toLowerCase();
 
         validarUnicidade(email, documento);
-        // TODO: se req for pessoa jurídica, chamar api do cnpj
 
         preencherComuns(usuario, req.nome(), req.senha(), req.getTipoPessoa(), documento, email);
         Usuario salvo = usuarioRepository.save(usuario);
