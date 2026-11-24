@@ -1,12 +1,13 @@
 import {
   ArrowRight,
   BookmarkCheck,
-  CalendarClock,
   ClipboardList,
   Flame,
   Gift,
+  History,
   Package,
   PlusCircle,
+  ShieldAlert,
   Truck,
 } from 'lucide-react'
 import { useCallback } from 'react'
@@ -21,15 +22,16 @@ import { useAsyncResource } from '../../hooks/useAsyncResource.ts'
 import { useAuth } from '../../hooks/useAuth.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { listarCampanhas, listarMinhasCampanhas } from '../../services/campanhas.service.ts'
-import { listarMinhasDisponibilidades } from '../../services/disponibilidades.service.ts'
 import { listarMinhasNecessidades, listarNecessidades } from '../../services/necessidades.service.ts'
 import { listarMinhasOfertas, listarOfertasDisponiveis } from '../../services/ofertas.service.ts'
 import {
+  listarHistoricoTransportador,
   listarMinhasEntregasTransportador,
   listarMinhasReservasReceptor,
   listarReservasAguardandoTransporte,
   listarReservasMinhasOfertasDoador,
 } from '../../services/reservas.service.ts'
+import { obterMeuPerfil } from '../../services/usuarios.service.ts'
 import { variantForProfile } from '../../utils/theme.ts'
 
 interface DashboardSummary {
@@ -43,8 +45,10 @@ interface DashboardSummary {
   minhasNecessidades?: number
   minhasCampanhas?: number
   aguardandoTransporte?: number
-  minhasEntregas?: number
-  minhasDisponibilidades?: number
+  meusTransportes?: number
+  historicoTransportes?: number
+  contaSuspensa?: boolean
+  motivoSuspensao?: string | null
 }
 
 export function DashboardPage() {
@@ -97,18 +101,21 @@ export function DashboardPage() {
       }
     }
 
-    const [campanhasPage, aguardando, minhasEntregas, minhasDisponibilidades] = await Promise.all([
+    const [campanhasPage, aguardando, meusTransportes, historico, perfil] = await Promise.all([
       listarCampanhas({ situacao: 'ATIVA', page: 0, size: 1 }),
       listarReservasAguardandoTransporte(),
       listarMinhasEntregasTransportador(),
-      listarMinhasDisponibilidades(),
+      listarHistoricoTransportador(),
+      obterMeuPerfil().catch(() => null),
     ])
 
     return {
       campanhasAtivas: campanhasPage.totalElements,
       aguardandoTransporte: aguardando.length,
-      minhasEntregas: minhasEntregas.length,
-      minhasDisponibilidades: minhasDisponibilidades.length,
+      meusTransportes: meusTransportes.length,
+      historicoTransportes: historico.length,
+      contaSuspensa: perfil?.situacaoConta === 'SUSPENSO',
+      motivoSuspensao: perfil?.motivoSuspensao ?? null,
     }
   }, [user])
 
@@ -128,9 +135,7 @@ export function DashboardPage() {
           <div className="flex items-center gap-2.5">
             <ProfileBadge tipoUsuario={user.tipoUsuario} />
           </div>
-          <h1 className="mt-2 text-2xl font-bold text-ink sm:text-3xl">
-            Olá, {user.nome}
-          </h1>
+          <h1 className="mt-2 text-2xl font-bold text-ink sm:text-3xl">Olá, {user.nome}</h1>
           <p className="mt-1 text-sm text-ink-secondary">
             Acompanhe sua operação no DoaLink em tempo real.
           </p>
@@ -163,17 +168,27 @@ export function DashboardPage() {
               variant={variantForProfile(user.tipoUsuario)}
               leftIcon={<Truck className="h-4 w-4" />}
             >
-              <Link to="/app/entregas-disponiveis">Ver entregas aguardando transporte</Link>
+              <Link to="/app/transportes-disponiveis">Ver transportes disponíveis</Link>
             </Button>
           ) : null}
         </div>
       </div>
 
+      {summary?.contaSuspensa ? (
+        <InfoBanner tone="danger" title="Conta de transportador suspensa para investigação">
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              {summary.motivoSuspensao ||
+                'Sua conta está suspensa devido à expiração de um prazo de entrega de 24 horas.'}
+            </span>
+          </span>
+        </InfoBanner>
+      ) : null}
+
       {loading ? <CardListSkeleton count={3} /> : null}
 
-      {!loading && error ? (
-        <ErrorState message={error.message} onRetry={loadDashboard} />
-      ) : null}
+      {!loading && error ? <ErrorState message={error.message} onRetry={loadDashboard} /> : null}
 
       {!loading && !error && summary ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -278,7 +293,7 @@ export function DashboardPage() {
               <Card>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                    Aguardando transporte
+                    Transportes disponíveis
                   </span>
                   <Package className="h-4 w-4 text-transportador-aa" aria-hidden="true" />
                 </div>
@@ -286,13 +301,13 @@ export function DashboardPage() {
                   {summary.aguardandoTransporte ?? 0}
                 </p>
                 <p className="mt-1 text-xs text-ink-secondary">
-                  Reservas abertas para vínculo de entrega
+                  Doações aguardando transportador
                 </p>
                 <Link
-                  to="/app/entregas-disponiveis"
+                  to="/app/transportes-disponiveis"
                   className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-transportador-aa hover:underline"
                 >
-                  <span>Assumir entregas</span>
+                  <span>Aceitar transportes</span>
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </Card>
@@ -300,23 +315,32 @@ export function DashboardPage() {
               <Card>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                    Minhas entregas e agenda
+                    Meus transportes
                   </span>
-                  <CalendarClock className="h-4 w-4 text-transportador-aa" aria-hidden="true" />
+                  <Truck className="h-4 w-4 text-transportador-aa" aria-hidden="true" />
                 </div>
                 <p className="mt-2 text-3xl font-bold text-ink tabular-nums">
-                  {summary.minhasEntregas ?? 0}
+                  {summary.meusTransportes ?? 0}
                 </p>
                 <p className="mt-1 text-xs text-ink-secondary">
-                  {summary.minhasDisponibilidades ?? 0} disponibilidades cadastradas
+                  {summary.historicoTransportes ?? 0} operações concluídas no histórico
                 </p>
-                <Link
-                  to="/app/minhas-entregas"
-                  className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-transportador-aa hover:underline"
-                >
-                  <span>Ver minhas entregas</span>
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    to="/app/meus-transportes"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-transportador-aa hover:underline"
+                  >
+                    <span>Gerenciar transportes</span>
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    to="/app/historico-transportes"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-ink-secondary hover:underline"
+                  >
+                    <History className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Histórico</span>
+                  </Link>
+                </div>
               </Card>
             </>
           ) : null}
@@ -365,10 +389,9 @@ export function DashboardPage() {
       ) : null}
 
       <InfoBanner tone="info" title="Como funciona o fluxo de doações">
-        No DoaLink, as ofertas disponíveis são reservadas diretamente pelas ONGs receptoras e, quando
-        necessário, assumidas por transportadores com disponibilidade compatível. Recursos como
-        sugestões automáticas de combinação, roteirização por mapas e linha do tempo detalhada
-        estarão disponíveis em atualizações futuras.
+        O DoaLink conecta doadores, ONGs receptoras e transportadores. Toda combinação logística
+        ocorre diretamente entre as partes, com validação segura por códigos de retirada (autorizado
+        pelo doador) e de entrega (fornecido pelo receptor com validade de 24 horas).
       </InfoBanner>
     </div>
   )

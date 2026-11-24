@@ -55,11 +55,11 @@ const PERFIS = [
     variant: 'transportador' as const,
     Icon: Truck,
     descricao:
-      'Informe sua disponibilidade de veículo e capacidade para assumir entregas que aguardam transporte solidário.',
+      'Visualize doações que aguardam transporte, combine a retirada externamente e confirme cada etapa com códigos de segurança.',
     itens: [
       'Cadastro como Pessoa Física ou Jurídica',
-      'Controle automático de capacidade restante',
-      'Endereços exatos liberados após o vínculo',
+      'Aceite direto de transportes disponíveis',
+      'Endereços e contatos liberados após o aceite',
     ],
     to: '/cadastro?perfil=TRANSPORTADOR',
     cta: 'Cadastrar como Transportador',
@@ -85,8 +85,8 @@ export function HomePage() {
         </h1>
 
         <p className="mt-4 text-base leading-relaxed text-ink-secondary sm:text-lg">
-          O DoaLink organiza ofertas de doação, reservas de ONGs receptoras e disponibilidade de
-          transporte em um fluxo transparente, seguro e com privacidade de endereços.
+          O DoaLink conecta ofertas de doação, reservas de ONGs receptoras e transportadores em um
+          fluxo transparente, seguro e com privacidade de endereços.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -209,11 +209,11 @@ export function HomePage() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-transportador-aa">
-                3. Entrega vinculada
+                3. Transporte e confirmação por código
               </p>
               <p className="mt-1 text-sm text-ink-secondary">
-                Um transportador com capacidade compatível assume a entrega, libera os endereços
-                completos entre as partes e conclui após a entrega.
+                Um transportador aceita a entrega, o doador autoriza o início com código de retirada
+                e o receptor confirma a entrega com código válido por 24 horas.
               </p>
             </div>
           </div>

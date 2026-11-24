@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { cadastroSchema } from '../auth.schema.ts'
 import { criarOfertaSchema } from '../oferta.schema.ts'
-import { criarDisponibilidadeSchema } from '../transporte.schema.ts'
-import { obterDataLocalHojeISO } from '../../utils/formatters.ts'
+import { confirmarCodigoTransporteSchema } from '../reserva.schema.ts'
 import { validarCnpj, validarCpf } from '../../utils/validators.ts'
 
 describe('Validadores de CPF e CNPJ', () => {
@@ -132,38 +131,12 @@ describe('criarOfertaSchema', () => {
   })
 })
 
-describe('criarDisponibilidadeSchema', () => {
-  const origemValida = {
-    cep: '01310100',
-    estado: 'SP',
-    cidade: 'São Paulo',
-    bairro: 'Bela Vista',
-    logradouro: 'Av Paulista',
-    numero: '100',
-    complemento: '',
-  }
-
-  it('aceita data de hoje (fuso local) e rejeita data passada', () => {
-    const hoje = obterDataLocalHojeISO()
-    const valido = criarDisponibilidadeSchema.safeParse({
-      tipoVeiculo: 'UTILITARIO_LEVE',
-      capacidade: 250,
-      tipoUnidade: 'KG',
-      dataDisponivel: hoje,
-      horarioDisponivel: '09:30',
-      origem: origemValida,
-    })
-    expect(valido.success).toBe(true)
-
-    const passado = criarDisponibilidadeSchema.safeParse({
-      tipoVeiculo: 'UTILITARIO_LEVE',
-      capacidade: 250,
-      tipoUnidade: 'KG',
-      dataDisponivel: '2020-01-01',
-      horarioDisponivel: '',
-      origem: origemValida,
-    })
-    expect(passado.success).toBe(false)
+describe('confirmarCodigoTransporteSchema', () => {
+  it('aceita exatamente 6 dígitos numéricos e rejeita formatos inválidos', () => {
+    expect(confirmarCodigoTransporteSchema.safeParse({ codigo: '123456' }).success).toBe(true)
+    expect(confirmarCodigoTransporteSchema.safeParse({ codigo: '12345' }).success).toBe(false)
+    expect(confirmarCodigoTransporteSchema.safeParse({ codigo: '12345a' }).success).toBe(false)
+    expect(confirmarCodigoTransporteSchema.safeParse({ codigo: '' }).success).toBe(false)
   })
 })
 

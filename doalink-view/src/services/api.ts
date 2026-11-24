@@ -74,8 +74,6 @@ function parseFieldErrors(status: number, message: string): Record<string, strin
       fieldErrors.email = message
     } else if (lower.includes('documento') || lower.includes('cpf') || lower.includes('cnpj')) {
       fieldErrors.documento = message
-    } else if (lower.includes('disponibilidade ativa para a data')) {
-      fieldErrors.dataDisponivel = message
     }
   }
 

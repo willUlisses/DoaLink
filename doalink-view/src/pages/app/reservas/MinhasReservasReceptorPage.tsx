@@ -76,8 +76,8 @@ export function MinhasReservasReceptorPage() {
           <div>
             <h1 className="text-2xl font-bold text-ink">Minhas reservas</h1>
             <p className="mt-1 text-sm text-ink-secondary">
-              Acompanhe suas reservas, visualize os contatos e endereços de retirada e finalize as
-              reservas concluídas.
+              Acompanhe suas reservas, consulte contatos e endereços e visualize o código de entrega
+              quando o transporte estiver em andamento.
             </p>
           </div>
           <Button asChild variant="receptor">
@@ -87,10 +87,10 @@ export function MinhasReservasReceptorPage() {
       </div>
 
       <InfoBanner tone="info">
-        O cancelamento é permitido apenas antes do vínculo com um transportador (
+        O cancelamento é permitido apenas antes de um transportador aceitar a operação (
         <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_TRANSPORTE}</strong> ou{' '}
-        <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_RETIRADA}</strong>) e devolve a oferta para{' '}
-        <strong>{LABELS_SITUACAO_OFERTA.DISPONIVEL}</strong>.
+        <strong>{LABELS_SITUACAO_RESERVA.AGUARDANDO_RETIRADA}</strong>). Quando o transporte estiver
+        em andamento, utilize o código de entrega válido por 24 horas apenas no recebimento físico.
       </InfoBanner>
 
       {loading ? <CardListSkeleton count={3} /> : null}
@@ -116,17 +116,16 @@ export function MinhasReservasReceptorPage() {
             const canCancel =
               reserva.situacao === 'AGUARDANDO_TRANSPORTE' ||
               reserva.situacao === 'AGUARDANDO_RETIRADA'
-            const canConclude =
-              reserva.situacao === 'AGUARDANDO_RETIRADA' ||
-              reserva.situacao === 'TRANSPORTE_VINCULADO'
+            const canConcludeDirectPickup = reserva.situacao === 'AGUARDANDO_RETIRADA'
 
             return (
               <ReservaCard
                 key={reserva.id}
                 reserva={reserva}
                 showFullDetails
+                showTimeline
                 actions={
-                  canCancel || canConclude ? (
+                  canCancel || canConcludeDirectPickup ? (
                     <>
                       {canCancel ? (
                         <Button
@@ -138,14 +137,14 @@ export function MinhasReservasReceptorPage() {
                           Cancelar reserva
                         </Button>
                       ) : null}
-                      {canConclude ? (
+                      {canConcludeDirectPickup ? (
                         <Button
                           variant="receptor"
                           size="sm"
                           leftIcon={<CheckCircle2 className="h-4 w-4" />}
                           onClick={() => setPendingAction({ type: 'conclude', reserva })}
                         >
-                          Finalizar reserva
+                          Finalizar retirada direta
                         </Button>
                       ) : null}
                     </>
@@ -162,12 +161,12 @@ export function MinhasReservasReceptorPage() {
         title={
           pendingAction?.type === 'cancel'
             ? 'Cancelar reserva?'
-            : 'Confirmar finalização da reserva?'
+            : 'Confirmar finalização da retirada?'
         }
         description={
           pendingAction?.type === 'cancel'
             ? `Ao cancelar a Reserva #${pendingAction.reserva.id}, a oferta voltará para a situação "${LABELS_SITUACAO_OFERTA.DISPONIVEL}".`
-            : `Confirma que a doação da Reserva #${pendingAction?.reserva.id ?? ''} foi concluída? A reserva passará para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`
+            : `Confirma que a retirada direta da Reserva #${pendingAction?.reserva.id ?? ''} foi concluída? A reserva passará para "${LABELS_SITUACAO_RESERVA.CONCLUIDA}".`
         }
         confirmLabel={
           pendingAction?.type === 'cancel' ? 'Confirmar cancelamento' : 'Confirmar finalização'

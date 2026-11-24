@@ -6,12 +6,11 @@ export const criarReservaSchema = z.object({
 
 export type CriarReservaFormValues = z.infer<typeof criarReservaSchema>
 
-export const vincularTransporteSchema = z.object({
-  disponibilidadeId: z
+export const confirmarCodigoTransporteSchema = z.object({
+  codigo: z
     .string()
     .trim()
-    .min(1, 'Selecione uma disponibilidade de transporte ativa.'),
+    .regex(/^\d{6}$/, 'Informe o código numérico de 6 dígitos.'),
 })
 
-export type VincularTransporteFormValues = z.infer<typeof vincularTransporteSchema>
-
+export type ConfirmarCodigoTransporteFormValues = z.infer<typeof confirmarCodigoTransporteSchema>

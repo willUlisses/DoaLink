@@ -1,10 +1,13 @@
 import {
+  AlertTriangle,
   BookmarkCheck,
   CheckCircle2,
   Clock,
   Flame,
+  KeyRound,
   Lock,
   PackageCheck,
+  ShieldAlert,
   Sparkles,
   Truck,
   XCircle,
@@ -15,6 +18,7 @@ import {
   LABELS_SITUACAO_NECESSIDADE,
   LABELS_SITUACAO_OFERTA,
   LABELS_SITUACAO_RESERVA,
+  LABELS_SITUACAO_TRANSPORTADOR,
 } from '../../utils/labels.ts'
 import { Badge, type BadgeTone } from './Badge.tsx'
 
@@ -29,7 +33,12 @@ export type AnySituacao =
   | 'ENCERRADA'
   | 'AGUARDANDO_TRANSPORTE'
   | 'AGUARDANDO_RETIRADA'
-  | 'TRANSPORTE_VINCULADO'
+  | 'AGUARDANDO_AUTORIZACAO_DOADOR'
+  | 'AGUARDANDO_CONFIRMACAO_RETIRADA'
+  | 'EM_TRANSPORTE'
+  | 'EM_INVESTIGACAO'
+  | 'ATIVO'
+  | 'SUSPENSO'
 
 interface StatusMeta {
   label: string
@@ -68,10 +77,35 @@ const STATUS_META: Record<AnySituacao, StatusMeta> = {
     tone: 'info',
     icon: <PackageCheck className="h-3.5 w-3.5" />,
   },
-  TRANSPORTE_VINCULADO: {
-    label: LABELS_SITUACAO_RESERVA.TRANSPORTE_VINCULADO,
+  AGUARDANDO_AUTORIZACAO_DOADOR: {
+    label: LABELS_SITUACAO_RESERVA.AGUARDANDO_AUTORIZACAO_DOADOR,
+    tone: 'warning',
+    icon: <Clock className="h-3.5 w-3.5" />,
+  },
+  AGUARDANDO_CONFIRMACAO_RETIRADA: {
+    label: LABELS_SITUACAO_RESERVA.AGUARDANDO_CONFIRMACAO_RETIRADA,
+    tone: 'info',
+    icon: <KeyRound className="h-3.5 w-3.5" />,
+  },
+  EM_TRANSPORTE: {
+    label: LABELS_SITUACAO_RESERVA.EM_TRANSPORTE,
     tone: 'transportador',
     icon: <Truck className="h-3.5 w-3.5" />,
+  },
+  EM_INVESTIGACAO: {
+    label: LABELS_SITUACAO_RESERVA.EM_INVESTIGACAO,
+    tone: 'danger',
+    icon: <AlertTriangle className="h-3.5 w-3.5" />,
+  },
+  ATIVO: {
+    label: LABELS_SITUACAO_TRANSPORTADOR.ATIVO,
+    tone: 'success',
+    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+  },
+  SUSPENSO: {
+    label: LABELS_SITUACAO_TRANSPORTADOR.SUSPENSO,
+    tone: 'danger',
+    icon: <ShieldAlert className="h-3.5 w-3.5" />,
   },
   CONCLUIDA: {
     label: LABELS_SITUACAO_OFERTA.CONCLUIDA,
@@ -109,4 +143,3 @@ export function StatusBadge({
     </Badge>
   )
 }
-

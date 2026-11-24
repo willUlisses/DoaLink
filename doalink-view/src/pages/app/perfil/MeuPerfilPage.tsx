@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Lock, Mail, MapPin, Phone, Save, UserCheck } from 'lucide-react'
+import { ArrowLeft, Lock, Mail, MapPin, Phone, Save, ShieldAlert, UserCheck } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation } from 'react-router-dom'
@@ -67,9 +67,9 @@ const ROTAS_PERMITIDAS_POR_PERFIL: Record<TipoUsuario, PerfilNavLink[]> = {
     { to: '/app', label: 'Painel inicial' },
   ],
   TRANSPORTADOR: [
-    { to: '/app/minhas-entregas', label: 'Minhas entregas' },
-    { to: '/app/entregas-disponiveis', label: 'Aguardando transporte' },
-    { to: '/app/disponibilidades', label: 'Disponibilidades' },
+    { to: '/app/meus-transportes', label: 'Meus transportes' },
+    { to: '/app/transportes-disponiveis', label: 'Transportes disponíveis' },
+    { to: '/app/historico-transportes', label: 'Histórico de transportes' },
     { to: '/app/campanhas', label: 'Campanhas emergenciais' },
     { to: '/app', label: 'Painel inicial' },
   ],
@@ -302,6 +302,18 @@ export function MeuPerfilPage() {
 
       {perfil && contato ? (
         <div className="space-y-6">
+          {perfil.situacaoConta === 'SUSPENSO' ? (
+            <InfoBanner tone="danger" title="Conta de transportador suspensa para investigação">
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {perfil.motivoSuspensao ||
+                    'Sua conta está suspensa devido à expiração de um prazo de entrega de 24 horas.'}
+                </span>
+              </span>
+            </InfoBanner>
+          ) : null}
+
           {/* Dados de identificação da conta — somente leitura */}
           <Card className="space-y-4">
             <div className="flex items-start gap-3">

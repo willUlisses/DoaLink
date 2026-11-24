@@ -1,4 +1,4 @@
-import { Building2, Calendar, Mail, MapPin, Package, Phone, User } from 'lucide-react'
+import { Building2, Calendar, KeyRound, Mail, MapPin, Package, Phone, Truck, User } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Badge } from '../../components/ui/Badge.tsx'
 import { Card } from '../../components/ui/Card.tsx'
@@ -123,6 +123,29 @@ export function OfertaCard({ oferta, variant = 'public', actions }: OfertaCardPr
               <p className="flex items-center gap-1.5 text-ink-secondary">
                 <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>{formatarTelefone(oferta.receptor.telefone)}</span>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {variant === 'owner' && oferta.transportador ? (
+          <div className="rounded-button border border-transportador-border bg-transportador-soft/60 p-3 space-y-1 text-xs">
+            <p className="flex items-center gap-1.5 font-semibold text-transportador-aa">
+              <Truck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>Transportador: {oferta.transportador.nome}</span>
+            </p>
+            {oferta.situacaoReserva === 'AGUARDANDO_AUTORIZACAO_DOADOR' ? (
+              <p className="text-ink-secondary">
+                Aguardando sua autorização em <strong>Detalhes</strong> para liberar a retirada.
+              </p>
+            ) : null}
+            {oferta.situacaoReserva === 'AGUARDANDO_CONFIRMACAO_RETIRADA' &&
+            oferta.codigoRetirada ? (
+              <p className="flex items-center gap-1.5 font-medium text-doador-aa">
+                <KeyRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>
+                  Código de retirada: <strong className="font-mono">{oferta.codigoRetirada}</strong>
+                </span>
               </p>
             ) : null}
           </div>

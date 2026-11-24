@@ -157,23 +157,25 @@ export function CadastroPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-3 sm:px-6 lg:py-4">
-      <Card padding="sm" className="sm:p-5">
-        <div className="mb-3 flex flex-col gap-2 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-button bg-surface-subtle text-ink">
-              <UserPlus className="h-4 w-4" aria-hidden="true" />
+    <div className="mx-auto flex min-h-[calc(100svh-4.25rem)] w-full max-w-5xl flex-col justify-center px-4 py-6 sm:px-6 lg:py-8">
+      <Card className="p-6 sm:p-8">
+        <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3.5">
+            <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-button bg-surface-subtle text-ink">
+              <UserPlus className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-ink sm:text-2xl">Criar conta no DoaLink</h1>
-              <p className="text-xs text-ink-secondary sm:text-sm">
+              <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                Criar conta no DoaLink
+              </h1>
+              <p className="mt-1 text-sm text-ink-secondary">
                 Após o cadastro, você receberá um código de 6 dígitos (validade de 90 segundos) para
                 ativar sua conta.
               </p>
             </div>
           </div>
 
-          <p className="shrink-0 text-xs text-ink-secondary sm:text-sm">
+          <p className="shrink-0 text-sm text-ink-secondary">
             Já possui cadastro?{' '}
             <Link to="/login" className="font-semibold text-ink hover:underline">
               Entrar
@@ -182,28 +184,27 @@ export function CadastroPage() {
         </div>
 
         {formError ? (
-          <div className="mb-3">
+          <div className="mb-5">
             <InfoBanner tone="danger" title="Não foi possível concluir o cadastro">
               {formError}
             </InfoBanner>
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3.5">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
           <ProfileSelector
-            compact
             value={tipoUsuario}
             onChange={handlePerfilChange}
             error={errors.tipoUsuario?.message}
           />
 
           {!isReceptor ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-start">
-              <fieldset className="flex flex-col gap-1 sm:col-span-2 lg:col-span-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-12 lg:items-start">
+              <fieldset className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-5">
                 <legend className="text-sm font-medium text-ink">Tipo de pessoa</legend>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <label
-                    className={`flex items-center justify-center rounded-button border px-2.5 py-2 text-xs sm:text-sm font-medium cursor-pointer transition-colors ${
+                    className={`flex items-center justify-center rounded-card border px-3 py-2.5 text-sm font-medium cursor-pointer transition-colors ${
                       tipoPessoa === 'FISICA'
                         ? 'border-ink bg-surface-subtle text-ink font-semibold'
                         : 'border-border bg-surface text-ink-secondary hover:border-border-strong'
@@ -219,7 +220,7 @@ export function CadastroPage() {
                     <span>Pessoa Física (CPF)</span>
                   </label>
                   <label
-                    className={`flex items-center justify-center rounded-button border px-2.5 py-2 text-xs sm:text-sm font-medium cursor-pointer transition-colors ${
+                    className={`flex items-center justify-center rounded-card border px-3 py-2.5 text-sm font-medium cursor-pointer transition-colors ${
                       tipoPessoa === 'JURIDICA'
                         ? 'border-ink bg-surface-subtle text-ink font-semibold'
                         : 'border-border bg-surface text-ink-secondary hover:border-border-strong'
@@ -239,7 +240,6 @@ export function CadastroPage() {
 
               <div className="lg:col-span-4">
                 <Input
-                  compact
                   label="Nome completo ou organização"
                   placeholder="Ex.: Maria Silva"
                   maxLength={150}
@@ -249,10 +249,9 @@ export function CadastroPage() {
                 />
               </div>
 
-              <div className="lg:col-span-4">
+              <div className="lg:col-span-3">
                 {showCnpj ? (
                   <Input
-                    compact
                     label="CNPJ"
                     placeholder="00.000.000/0000-00"
                     inputMode="numeric"
@@ -268,7 +267,6 @@ export function CadastroPage() {
                   />
                 ) : (
                   <Input
-                    compact
                     label="CPF"
                     placeholder="000.000.000-00"
                     inputMode="numeric"
@@ -287,7 +285,6 @@ export function CadastroPage() {
 
               <div className="lg:col-span-6">
                 <Input
-                  compact
                   label="E-mail"
                   type="email"
                   autoComplete="email"
@@ -301,7 +298,6 @@ export function CadastroPage() {
 
               <div className="lg:col-span-6">
                 <PasswordInput
-                  compact
                   label="Senha"
                   autoComplete="new-password"
                   placeholder="Mínimo de 8 caracteres"
@@ -313,15 +309,14 @@ export function CadastroPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-12 lg:items-start">
-              <div className="space-y-2.5 lg:col-span-5">
-                <InfoBanner tone="info" className="p-2.5 text-xs">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+              <div className="space-y-4 lg:col-span-5">
+                <InfoBanner tone="info" className="text-xs">
                   Organizações receptoras utilizam obrigatoriamente CNPJ e endereço completo da sede
                   ou ponto de recebimento.
                 </InfoBanner>
 
                 <Input
-                  compact
                   label="Nome da organização (ONG)"
                   placeholder="Ex.: Instituto Esperança"
                   maxLength={150}
@@ -330,38 +325,33 @@ export function CadastroPage() {
                   {...register('nome')}
                 />
 
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <Input
-                    compact
-                    label="CNPJ"
-                    placeholder="00.000.000/0000-00"
-                    inputMode="numeric"
-                    maxLength={18}
-                    required
-                    error={errors.cnpj?.message}
-                    {...cnpjField}
-                    onChange={(event) => {
-                      setValue('cnpj', mascararCnpj(event.target.value), {
-                        shouldValidate: Boolean(errors.cnpj),
-                      })
-                    }}
-                  />
+                <Input
+                  label="CNPJ"
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                  maxLength={18}
+                  required
+                  error={errors.cnpj?.message}
+                  {...cnpjField}
+                  onChange={(event) => {
+                    setValue('cnpj', mascararCnpj(event.target.value), {
+                      shouldValidate: Boolean(errors.cnpj),
+                    })
+                  }}
+                />
 
-                  <Input
-                    compact
-                    label="E-mail"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="contato@exemplo.com.br"
-                    maxLength={254}
-                    required
-                    error={errors.email?.message}
-                    {...register('email')}
-                  />
-                </div>
+                <Input
+                  label="E-mail"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="contato@exemplo.com.br"
+                  maxLength={254}
+                  required
+                  error={errors.email?.message}
+                  {...register('email')}
+                />
 
                 <PasswordInput
-                  compact
                   label="Senha"
                   autoComplete="new-password"
                   placeholder="Mínimo de 8 caracteres"
@@ -374,7 +364,6 @@ export function CadastroPage() {
 
               <div className="lg:col-span-7">
                 <AddressFieldset
-                  compact
                   prefix="endereco"
                   legend="Endereço da organização"
                   description="Obrigatório para recebimento e entrega de doações."
@@ -387,14 +376,14 @@ export function CadastroPage() {
             </div>
           )}
 
-          <div className="flex justify-end border-t border-border pt-3">
+          <div className="flex justify-end border-t border-border pt-5">
             <Button
               type="submit"
-              size="md"
+              size="lg"
               variant={variantForProfile(tipoUsuario)}
               loading={isSubmitting}
               loadingLabel="Criando conta..."
-              className="w-full sm:w-auto sm:min-w-64"
+              className="w-full sm:w-auto sm:min-w-72"
             >
               Criar conta e enviar código
             </Button>

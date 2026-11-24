@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -169,7 +169,7 @@ describe('Funcionalidades pendentes integradas', () => {
     await waitFor(() => {
       expect(contactEmailInput).toHaveValue('ong@login.org')
     })
-    fireEvent.change(contactEmailInput, { target: { value: '' } })
+    await user.clear(contactEmailInput)
     await user.type(contactEmailInput, 'contato@esperanca.org')
     expect(contactEmailInput).toHaveValue('contato@esperanca.org')
     await user.type(screen.getByLabelText(/telefone para contato/i), '11999998888')
@@ -283,7 +283,7 @@ describe('Funcionalidades pendentes integradas', () => {
       precisaTransporte: false,
       ofertaId: 10,
       situacaoOferta: 'RESERVADA',
-      disponibilidadeId: null,
+      transportadorId: null,
       doador: { nome: 'Carlos', email: 'carlos@doador.org', telefone: null },
       receptor: { nome: 'ONG Esperança', email: 'ong@esperanca.org', telefone: null },
       transportador: null,
@@ -342,18 +342,18 @@ describe('Funcionalidades pendentes integradas', () => {
     expect(screen.getByText('contato@ong.org')).toBeInTheDocument()
   })
 
-  it('MinhasReservasReceptorPage permite finalizar reserva elegível após confirmação', async () => {
+  it('MinhasReservasReceptorPage permite finalizar retirada direta (AGUARDANDO_RETIRADA) e exibe código de entrega em EM_TRANSPORTE', async () => {
     const user = userEvent.setup()
-    const reservaTransporteVinculado: ReservaEntregaResponse = {
+    const reservaRetiradaDireta: ReservaEntregaResponse = {
       id: 77,
-      situacao: 'TRANSPORTE_VINCULADO',
-      precisaTransporte: true,
+      situacao: 'AGUARDANDO_RETIRADA',
+      precisaTransporte: false,
       ofertaId: 10,
       situacaoOferta: 'RESERVADA',
-      disponibilidadeId: 5,
+      transportadorId: null,
       doador: { nome: 'Carlos', email: 'carlos@doador.org', telefone: '11999990001' },
       receptor: { nome: 'ONG Esperança', email: 'ong@esperanca.org', telefone: '11999990002' },
-      transportador: { nome: 'João Transp', email: 'joao@transp.org', telefone: null },
+      transportador: null,
       enderecoRetirada: null,
       enderecoEntrega: null,
       itens: [],
@@ -362,8 +362,8 @@ describe('Funcionalidades pendentes integradas', () => {
     }
 
     vi.mocked(reservasService.listarMinhasReservasReceptor)
-      .mockResolvedValueOnce([reservaTransporteVinculado])
-      .mockResolvedValueOnce([{ ...reservaTransporteVinculado, situacao: 'CONCLUIDA', situacaoOferta: 'CONCLUIDA' }])
+      .mockResolvedValueOnce([reservaRetiradaDireta])
+      .mockResolvedValueOnce([{ ...reservaRetiradaDireta, situacao: 'CONCLUIDA', situacaoOferta: 'CONCLUIDA' }])
     vi.mocked(reservasService.concluirReserva).mockResolvedValueOnce(undefined)
 
     render(
@@ -376,7 +376,7 @@ describe('Funcionalidades pendentes integradas', () => {
       </ToastProvider>,
     )
 
-    const finalizarBtn = await screen.findByRole('button', { name: /finalizar reserva/i })
+    const finalizarBtn = await screen.findByRole('button', { name: /finalizar retirada direta/i })
     await user.click(finalizarBtn)
     await user.click(screen.getByRole('button', { name: /confirmar finalização/i }))
 

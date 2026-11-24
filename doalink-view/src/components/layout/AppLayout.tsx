@@ -1,9 +1,9 @@
 import {
   BookmarkCheck,
-  CalendarClock,
   ClipboardList,
   Flame,
   Gift,
+  History,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -110,19 +110,19 @@ function buildNavItems(tipoUsuario: TipoUsuario): NavItem[] {
   return [
     inicio,
     {
-      to: '/app/entregas-disponiveis',
-      label: 'Aguardando transporte',
+      to: '/app/transportes-disponiveis',
+      label: 'Transportes disponíveis',
       icon: <Package className="h-4 w-4" aria-hidden="true" />,
     },
     {
-      to: '/app/minhas-entregas',
-      label: 'Minhas entregas',
+      to: '/app/meus-transportes',
+      label: 'Meus transportes',
       icon: <Truck className="h-4 w-4" aria-hidden="true" />,
     },
     {
-      to: '/app/disponibilidades',
-      label: 'Disponibilidades',
-      icon: <CalendarClock className="h-4 w-4" aria-hidden="true" />,
+      to: '/app/historico-transportes',
+      label: 'Histórico de transportes',
+      icon: <History className="h-4 w-4" aria-hidden="true" />,
     },
     campanhas,
     perfil,

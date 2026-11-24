@@ -73,11 +73,6 @@ const NovaCampanhaPage = lazy(() =>
     default: m.NovaCampanhaPage,
   })),
 )
-const DisponibilidadesPage = lazy(() =>
-  import('../pages/app/transporte/DisponibilidadesPage.tsx').then((m) => ({
-    default: m.DisponibilidadesPage,
-  })),
-)
 const EntregasDisponiveisPage = lazy(() =>
   import('../pages/app/transporte/EntregasDisponiveisPage.tsx').then((m) => ({
     default: m.EntregasDisponiveisPage,
@@ -86,6 +81,11 @@ const EntregasDisponiveisPage = lazy(() =>
 const MinhasEntregasPage = lazy(() =>
   import('../pages/app/transporte/MinhasEntregasPage.tsx').then((m) => ({
     default: m.MinhasEntregasPage,
+  })),
+)
+const HistoricoTransportesPage = lazy(() =>
+  import('../pages/app/transporte/HistoricoTransportesPage.tsx').then((m) => ({
+    default: m.HistoricoTransportesPage,
   })),
 )
 const MinhasReservasReceptorPage = lazy(() =>
@@ -278,10 +278,10 @@ export function AppRoutes() {
           {/* Rotas exclusivas do Transportador */}
           <Route element={<RoleRoute allowedRoles={[TIPO_USUARIO.TRANSPORTADOR]} />}>
             <Route
-              path="disponibilidades"
+              path="transportes-disponiveis"
               element={
                 <RouteSuspense>
-                  <DisponibilidadesPage />
+                  <EntregasDisponiveisPage />
                 </RouteSuspense>
               }
             />
@@ -294,10 +294,26 @@ export function AppRoutes() {
               }
             />
             <Route
+              path="meus-transportes"
+              element={
+                <RouteSuspense>
+                  <MinhasEntregasPage />
+                </RouteSuspense>
+              }
+            />
+            <Route
               path="minhas-entregas"
               element={
                 <RouteSuspense>
                   <MinhasEntregasPage />
+                </RouteSuspense>
+              }
+            />
+            <Route
+              path="historico-transportes"
+              element={
+                <RouteSuspense>
+                  <HistoricoTransportesPage />
                 </RouteSuspense>
               }
             />

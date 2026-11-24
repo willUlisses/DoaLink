@@ -1,5 +1,10 @@
 import type { ContatoResponse, EnderecoRequest, EnderecoResponse } from './endereco.ts'
-import type { SituacaoOferta, TipoItemDoacao, TipoUnidade } from './enums.ts'
+import type {
+  SituacaoOferta,
+  SituacaoReservaEntrega,
+  TipoItemDoacao,
+  TipoUnidade,
+} from './enums.ts'
 
 export interface ItemDoacaoRequest {
   descricao: string
@@ -28,6 +33,10 @@ export interface OfertaDoacaoResponse {
   receptor?: ContatoResponse | null
   localRetirada: EnderecoResponse | null
   itens: ItemDoacaoResponse[]
+  reservaId?: number | null
+  situacaoReserva?: SituacaoReservaEntrega | null
+  transportador?: ContatoResponse | null
+  codigoRetirada?: string | null
   criadoEm: string
   atualizadoEm: string | null
 }
@@ -40,4 +49,3 @@ export interface OfertaFiltros {
   cidade?: string
   estado?: string
 }
-

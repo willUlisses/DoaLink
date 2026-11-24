@@ -4,11 +4,14 @@ import {
   BookmarkCheck,
   Building2,
   Calendar,
+  KeyRound,
   Mail,
   MapPin,
   Package,
   Phone,
   ShieldAlert,
+  ShieldCheck,
+  Truck,
   User,
 } from 'lucide-react'
 import { useCallback, useState } from 'react'
@@ -31,7 +34,10 @@ import { useToast } from '../../../hooks/useToast.ts'
 import { criarReservaSchema, type CriarReservaFormValues } from '../../../schemas/reserva.schema.ts'
 import { isNormalizedApiError, normalizeApiError } from '../../../services/api.ts'
 import { buscarOfertaPorId, cancelarOferta } from '../../../services/ofertas.service.ts'
-import { reservarOferta } from '../../../services/reservas.service.ts'
+import {
+  autorizarInicioTransportePorOferta,
+  reservarOferta,
+} from '../../../services/reservas.service.ts'
 import {
   formatarDataHora,
   formatarEnderecoCompleto,
@@ -61,6 +67,8 @@ export function OfertaDetalhePage() {
   const [reserveError, setReserveError] = useState<string | null>(null)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [canceling, setCanceling] = useState(false)
+  const [authorizeDialogOpen, setAuthorizeDialogOpen] = useState(false)
+  const [authorizing, setAuthorizing] = useState(false)
 
   const {
     register,
@@ -81,7 +89,7 @@ export function OfertaDetalhePage() {
   )
 
   const isForbidden = error?.status === 403
-  const errorMessage = !validId ? 'Identificador de oferta inválido.' : error?.message ?? null
+  const errorMessage = !validId ? 'Identificador de oferta inválido.' : (error?.message ?? null)
 
   const possuiEnderecoRetirada = Boolean(
     oferta?.localRetirada && (oferta.localRetirada.logradouro || oferta.localRetirada.cidade),
@@ -100,7 +108,7 @@ export function OfertaDetalhePage() {
         variant: 'success',
         title: `Reserva #${reserva.id} confirmada`,
         description: precisaTransporte
-          ? 'A reserva está aguardando vínculo de um transportador.'
+          ? 'A reserva está aguardando um transportador aceitar a operação.'
           : 'Retirada registrada. Entre em contato com o doador para combinar os detalhes.',
       })
       navigate('/app/minhas-reservas')
@@ -133,6 +141,31 @@ export function OfertaDetalhePage() {
     }
   }
 
+  const handleAutorizarInicio = async () => {
+    if (!oferta) return
+    setAuthorizing(true)
+    try {
+      const resp = await autorizarInicioTransportePorOferta(oferta.id)
+      showToast({
+        variant: 'success',
+        title: 'Início do transporte autorizado',
+        description: resp.codigoRetirada
+          ? `Código de retirada gerado: ${resp.codigoRetirada}. Informe-o ao motorista somente na coleta física.`
+          : 'Código de retirada gerado com sucesso.',
+      })
+      setAuthorizeDialogOpen(false)
+      loadOferta()
+    } catch (err) {
+      showToast({
+        variant: 'error',
+        title: 'Não foi possível autorizar o transporte',
+        description: normalizeApiError(err).message,
+      })
+    } finally {
+      setAuthorizing(false)
+    }
+  }
+
   const isEnderecoCompleto = Boolean(oferta?.localRetirada?.logradouro)
   const backTarget =
     user?.tipoUsuario === 'DOADOR'
@@ -140,12 +173,18 @@ export function OfertaDetalhePage() {
         ? { to: '/app/reservas-ofertas', label: 'Reservas recebidas' }
         : { to: '/app/minhas-ofertas', label: 'Minhas ofertas' }
       : user?.tipoUsuario === 'TRANSPORTADOR'
-        ? fromPath === '/app/entregas-disponiveis'
-          ? { to: '/app/entregas-disponiveis', label: 'Aguardando transporte' }
-          : { to: '/app/minhas-entregas', label: 'Minhas entregas' }
+        ? fromPath === '/app/transportes-disponiveis' || fromPath === '/app/entregas-disponiveis'
+          ? { to: '/app/transportes-disponiveis', label: 'Transportes disponíveis' }
+          : { to: '/app/meus-transportes', label: 'Meus transportes' }
         : fromPath === '/app/minhas-reservas'
           ? { to: '/app/minhas-reservas', label: 'Minhas reservas' }
           : { to: '/app/ofertas', label: 'Ofertas disponíveis' }
+
+  const podeAutorizarTransporte =
+    user?.tipoUsuario === 'DOADOR' &&
+    oferta?.situacao === 'RESERVADA' &&
+    oferta?.situacaoReserva === 'AGUARDANDO_AUTORIZACAO_DOADOR' &&
+    Boolean(oferta?.transportador)
 
   return (
     <div className="space-y-6">
@@ -198,7 +237,10 @@ export function OfertaDetalhePage() {
                   <span>Publicada em {formatarDataHora(oferta.criadoEm)}</span>
                 </p>
               </div>
-              <StatusBadge situacao={oferta.situacao} />
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge situacao={oferta.situacao} />
+                {oferta.situacaoReserva ? <StatusBadge situacao={oferta.situacaoReserva} /> : null}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 rounded-card border border-border bg-canvas p-4 sm:grid-cols-2">
@@ -271,6 +313,28 @@ export function OfertaDetalhePage() {
               </div>
             ) : null}
 
+            {oferta.transportador ? (
+              <div className="rounded-card border border-transportador-border bg-transportador-soft/60 p-4 space-y-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-transportador-aa">
+                  Transportador responsável
+                </p>
+                <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <Truck className="h-4 w-4 shrink-0 text-transportador-aa" aria-hidden="true" />
+                  <span>{oferta.transportador.nome}</span>
+                </p>
+                <p className="flex items-center gap-2 text-xs text-ink-secondary">
+                  <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>{oferta.transportador.email}</span>
+                </p>
+                {oferta.transportador.telefone ? (
+                  <p className="flex items-center gap-2 text-xs text-ink-secondary">
+                    <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{formatarTelefone(oferta.transportador.telefone)}</span>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             <div>
               <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
                 <Package className="h-4 w-4 text-doador-aa" aria-hidden="true" />
@@ -324,9 +388,7 @@ export function OfertaDetalhePage() {
                       </InfoBanner>
                     )}
 
-                    {reserveError ? (
-                      <InfoBanner tone="danger">{reserveError}</InfoBanner>
-                    ) : null}
+                    {reserveError ? <InfoBanner tone="danger">{reserveError}</InfoBanner> : null}
 
                     <Button
                       type="submit"
@@ -353,13 +415,49 @@ export function OfertaDetalhePage() {
             ) : null}
 
             {user?.tipoUsuario === 'DOADOR' ? (
-              <Card className="space-y-3">
+              <Card className="space-y-4">
                 <h2 className="text-base font-bold text-ink">Gestão da oferta</h2>
+
+                {podeAutorizarTransporte ? (
+                  <div className="space-y-3 rounded-card border border-doador-border bg-doador-soft/50 p-3.5">
+                    <p className="text-xs leading-relaxed text-ink-secondary">
+                      Um transportador aceitou assumir esta entrega. Após combinar os detalhes da
+                      retirada, autorize o início para gerar o código de confirmação de retirada.
+                    </p>
+                    <Button
+                      variant="doador"
+                      className="w-full"
+                      leftIcon={<ShieldCheck className="h-4 w-4" />}
+                      onClick={() => setAuthorizeDialogOpen(true)}
+                    >
+                      Autorizar início do transporte
+                    </Button>
+                  </div>
+                ) : null}
+
+                {oferta.situacaoReserva === 'AGUARDANDO_CONFIRMACAO_RETIRADA' &&
+                oferta.codigoRetirada ? (
+                  <div className="space-y-2 rounded-card border border-doador-border bg-doador-soft/70 p-4">
+                    <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-doador-aa">
+                      <KeyRound className="h-4 w-4" aria-hidden="true" />
+                      <span>Código de retirada</span>
+                    </p>
+                    <p className="font-mono text-2xl font-bold tracking-[0.25em] text-ink">
+                      {oferta.codigoRetirada}
+                    </p>
+                    <p className="text-xs leading-relaxed text-ink-secondary">
+                      Forneça este código ao transportador somente quando ele estiver retirando os
+                      itens fisicamente.
+                    </p>
+                  </div>
+                ) : null}
+
                 <InfoBanner tone="info">
                   Após publicada, uma oferta não pode ser editada. Caso precise alterar alguma
                   informação, cancele a oferta enquanto estiver com situação{' '}
                   <strong>{LABELS_SITUACAO_OFERTA.DISPONIVEL}</strong> e publique uma nova.
                 </InfoBanner>
+
                 {oferta.situacao === 'DISPONIVEL' ? (
                   <Button
                     variant="destructive"
@@ -384,6 +482,18 @@ export function OfertaDetalhePage() {
         loading={canceling}
         onConfirm={handleCancelarOferta}
         onClose={() => setCancelDialogOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={authorizeDialogOpen}
+        title="Autorizar início do transporte?"
+        description="O sistema irá gerar um código de confirmação de 6 dígitos que ficará disponível para você entregar presencialmente ao motorista no momento da retirada."
+        confirmLabel="Autorizar início"
+        cancelLabel="Voltar"
+        confirmVariant="doador"
+        loading={authorizing}
+        onConfirm={handleAutorizarInicio}
+        onClose={() => !authorizing && setAuthorizeDialogOpen(false)}
       />
     </div>
   )

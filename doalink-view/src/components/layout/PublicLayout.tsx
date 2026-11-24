@@ -1,12 +1,14 @@
 import { ArrowRight, LogIn, UserPlus } from 'lucide-react'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.ts'
 import { Button } from '../ui/Button.tsx'
 import { BrandLogo } from './BrandLogo.tsx'
 
 export function PublicLayout() {
   const { user, status } = useAuth()
+  const location = useLocation()
   const isAuthenticated = status === 'authenticated' && user !== null
+  const hideFooter = location.pathname.startsWith('/cadastro')
 
   return (
     <div className="flex min-h-svh flex-col bg-canvas text-ink">
@@ -33,11 +35,7 @@ export function PublicLayout() {
                 >
                   <Link to="/login">Entrar</Link>
                 </Button>
-                <Button
-                  asChild
-                  leftIcon={<UserPlus className="h-4 w-4" />}
-                  className="px-3.5"
-                >
+                <Button asChild leftIcon={<UserPlus className="h-4 w-4" />} className="px-3.5">
                   <Link to="/cadastro">Cadastrar</Link>
                 </Button>
               </>
@@ -50,23 +48,24 @@ export function PublicLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-border bg-surface py-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-3 px-4 text-xs text-ink-secondary sm:flex-row sm:items-center sm:px-6">
-          <p>DoaLink — Conectando doadores, ONGs receptoras e transportadores.</p>
-          <div className="flex flex-wrap items-center gap-4">
-            <Link to="/login" className="hover:text-ink hover:underline">
-              Entrar
-            </Link>
-            <Link to="/cadastro" className="hover:text-ink hover:underline">
-              Criar conta
-            </Link>
-            <Link to="/recuperar-senha" className="hover:text-ink hover:underline">
-              Recuperar senha
-            </Link>
+      {!hideFooter ? (
+        <footer className="border-t border-border bg-surface py-6">
+          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-3 px-4 text-xs text-ink-secondary sm:flex-row sm:items-center sm:px-6">
+            <p>DoaLink — Conectando doadores, ONGs receptoras e transportadores.</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link to="/login" className="hover:text-ink hover:underline">
+                Entrar
+              </Link>
+              <Link to="/cadastro" className="hover:text-ink hover:underline">
+                Criar conta
+              </Link>
+              <Link to="/recuperar-senha" className="hover:text-ink hover:underline">
+                Recuperar senha
+              </Link>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      ) : null}
     </div>
   )
 }
-
