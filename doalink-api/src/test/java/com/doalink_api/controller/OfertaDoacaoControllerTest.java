@@ -281,4 +281,37 @@ class OfertaDoacaoControllerTest {
                 mockMvc.perform(patch("/ofertas/999/cancelar").with(AS_DOADOR))
                                 .andExpect(status().isNotFound());
         }
+
+        @Test
+        @DisplayName("PATCH /ofertas/{id}/autorizar-transporte: doador autoriza início → 200")
+        void autorizarInicioTransporte_deveRetornar200() throws Exception {
+                ReservaEntregaResponse resp = new ReservaEntregaResponse(
+                                50L,
+                                com.doalink_api.entities.enums.SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA,
+                                true,
+                                10L,
+                                SituacaoOferta.RESERVADA,
+                                3L,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                List.of(),
+                                LocalDateTime.now(),
+                                LocalDateTime.now(),
+                                null,
+                                null,
+                                "123456",
+                                null,
+                                null,
+                                List.of(),
+                                LocalDateTime.now(),
+                                LocalDateTime.now());
+                when(ofertaService.autorizarInicioTransporte(1L, 10L)).thenReturn(resp);
+
+                mockMvc.perform(patch("/ofertas/10/autorizar-transporte").with(AS_DOADOR))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.codigoRetirada").value("123456"));
+        }
 }

@@ -33,8 +33,6 @@ public class GlobalExceptionHandler {
         String mensagem = "Conflito de integridade dos dados";
         if (causa != null && causa.contains("uk_reserva_entrega_oferta_ativa")) {
             mensagem = "Esta oferta já possui uma reserva ativa";
-        } else if (causa != null && causa.contains("uk_disponibilidade_transportador_data_ativa")) {
-            mensagem = "Já existe uma disponibilidade ativa para esta data";
         }
         return new ResponseEntity<>(
                 new ErrorResponse(mensagem, HttpStatus.CONFLICT.value()),

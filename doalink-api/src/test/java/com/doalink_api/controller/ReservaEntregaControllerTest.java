@@ -1,13 +1,15 @@
 package com.doalink_api.controller;
 
+import com.doalink_api.dtos.request.ConfirmarCodigoTransporteRequest;
 import com.doalink_api.dtos.request.ReservaEntregaRequest;
-import com.doalink_api.dtos.request.VincularTransporteRequest;
 import com.doalink_api.dtos.response.*;
 import com.doalink_api.entities.enums.SituacaoOferta;
 import com.doalink_api.entities.enums.SituacaoReservaEntrega;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.entities.enums.TipoUnidade;
+import com.doalink_api.exception.CodigoInvalidoException;
 import com.doalink_api.exception.ConflictException;
+import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.GlobalExceptionHandler;
 import com.doalink_api.service.ReservaEntregaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,20 +89,28 @@ class ReservaEntregaControllerTest {
                 .build();
     }
 
-    private ReservaEntregaResponse responseExemplo(SituacaoReservaEntrega situacao, Long dispId) {
+    private ReservaEntregaResponse responseExemplo(SituacaoReservaEntrega situacao, Long transportadorId) {
         return new ReservaEntregaResponse(
                 50L,
                 situacao,
                 true,
                 10L,
                 SituacaoOferta.RESERVADA,
-                dispId,
+                transportadorId,
                 new ContatoResponse("Doador", "doador@email.com", "11999990001"),
                 new ContatoResponse("ONG", "ong@email.com", "11999990002"),
-                dispId != null ? new ContatoResponse("Carlos", "carlos@email.com", "11999990003") : null,
+                transportadorId != null ? new ContatoResponse("Carlos", "carlos@email.com", "11999990003") : null,
                 new EnderecoResponse(null, null, null, null, "Campinas", "SP", null),
                 new EnderecoResponse(null, null, null, null, "São Paulo", "SP", null),
                 List.of(new ItemDoacaoResponse(1L, "Arroz", TipoItemDoacao.NAO_PERECIVEL, TipoUnidade.KG, 20.0)),
+                LocalDateTime.now(),
+                null,
+                null,
+                null,
+                situacao == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA ? "123456" : null,
+                situacao == SituacaoReservaEntrega.EM_TRANSPORTE ? "654321" : null,
+                situacao == SituacaoReservaEntrega.EM_TRANSPORTE ? LocalDateTime.now().plusHours(24) : null,
+                List.of(),
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
@@ -133,39 +143,90 @@ class ReservaEntregaControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /reservas/{id}/vincular-transporte: deve retornar 200")
-    void vincularTransporte_deveRetornar200() throws Exception {
-        when(reservaService.vincularTransporte(eq(3L), eq(50L), any()))
-                .thenReturn(responseExemplo(SituacaoReservaEntrega.TRANSPORTE_VINCULADO, 20L));
+    @DisplayName("PATCH /reservas/{id}/aceitar-transporte: deve retornar 200")
+    void aceitarTransporte_deveRetornar200() throws Exception {
+        when(reservaService.aceitarTransporte(3L, 50L))
+                .thenReturn(responseExemplo(SituacaoReservaEntrega.AGUARDANDO_AUTORIZACAO_DOADOR, 3L));
 
-        mockMvc.perform(patch("/reservas/50/vincular-transporte")
-                        .with(AS_TRANSPORTADOR)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new VincularTransporteRequest(20L))))
+        mockMvc.perform(patch("/reservas/50/aceitar-transporte").with(AS_TRANSPORTADOR))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.disponibilidadeId").value(20))
-                .andExpect(jsonPath("$.situacao").value("TRANSPORTE_VINCULADO"));
+                .andExpect(jsonPath("$.transportadorId").value(3))
+                .andExpect(jsonPath("$.situacao").value("AGUARDANDO_AUTORIZACAO_DOADOR"));
     }
 
     @Test
-    @DisplayName("PATCH /reservas/{id}/vincular-transporte: conflito de capacidade → 409")
-    void vincularTransporte_deveRetornar409() throws Exception {
-        when(reservaService.vincularTransporte(eq(3L), eq(50L), any()))
-                .thenThrow(new ConflictException("Capacidade insuficiente"));
+    @DisplayName("PATCH /reservas/{id}/aceitar-transporte: conflito simultâneo → 409")
+    void aceitarTransporte_deveRetornar409() throws Exception {
+        when(reservaService.aceitarTransporte(3L, 50L))
+                .thenThrow(new ConflictException("Reserva já assumida"));
 
-        mockMvc.perform(patch("/reservas/50/vincular-transporte")
+        mockMvc.perform(patch("/reservas/50/aceitar-transporte").with(AS_TRANSPORTADOR))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("PATCH /reservas/{id}/autorizar-transporte: doador autoriza e recebe código → 200")
+    void autorizarInicio_deveRetornar200() throws Exception {
+        when(reservaService.autorizarInicioTransporte(1L, 50L))
+                .thenReturn(responseExemplo(SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA, 3L));
+
+        mockMvc.perform(patch("/reservas/50/autorizar-transporte").with(AS_DOADOR))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.situacao").value("AGUARDANDO_CONFIRMACAO_RETIRADA"))
+                .andExpect(jsonPath("$.codigoRetirada").value("123456"));
+    }
+
+    @Test
+    @DisplayName("PATCH /reservas/{id}/confirmar-retirada: código válido → 200; código inválido → 400")
+    void confirmarRetirada_deveValidarCodigo() throws Exception {
+        when(reservaService.confirmarRetirada(eq(3L), eq(50L), any()))
+                .thenReturn(responseExemplo(SituacaoReservaEntrega.EM_TRANSPORTE, 3L))
+                .thenThrow(new CodigoInvalidoException("Código de retirada inválido"));
+
+        mockMvc.perform(patch("/reservas/50/confirmar-retirada")
                         .with(AS_TRANSPORTADOR)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new VincularTransporteRequest(20L))))
-                .andExpect(status().isConflict());
+                        .content(objectMapper.writeValueAsString(new ConfirmarCodigoTransporteRequest("123456"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.situacao").value("EM_TRANSPORTE"));
+
+        mockMvc.perform(patch("/reservas/50/confirmar-retirada")
+                        .with(AS_TRANSPORTADOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ConfirmarCodigoTransporteRequest("000000"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PATCH /reservas/{id}/confirmar-entrega: código expirado/suspenso → 403")
+    void confirmarEntrega_expirado_deveRetornar403() throws Exception {
+        when(reservaService.confirmarEntrega(eq(3L), eq(50L), any()))
+                .thenThrow(new ForbiddenException("Operação bloqueada e conta sob investigação"));
+
+        mockMvc.perform(patch("/reservas/50/confirmar-entrega")
+                        .with(AS_TRANSPORTADOR)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ConfirmarCodigoTransporteRequest("654321"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /reservas/minhas/transportador/historico: deve retornar 200")
+    void listarHistoricoTransportador_deveRetornar200() throws Exception {
+        when(reservaService.listarHistoricoTransportador(3L))
+                .thenReturn(List.of(responseExemplo(SituacaoReservaEntrega.CONCLUIDA, 3L)));
+
+        mockMvc.perform(get("/reservas/minhas/transportador/historico").with(AS_TRANSPORTADOR))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].situacao").value("CONCLUIDA"));
     }
 
     @Test
     @DisplayName("PATCH /reservas/{id}/concluir: deve retornar 204")
     void concluir_deveRetornar204() throws Exception {
-        doNothing().when(reservaService).concluir(3L, 50L);
+        doNothing().when(reservaService).concluir(2L, 50L);
 
-        mockMvc.perform(patch("/reservas/50/concluir").with(AS_TRANSPORTADOR))
+        mockMvc.perform(patch("/reservas/50/concluir").with(AS_RECEPTOR))
                 .andExpect(status().isNoContent());
     }
 
@@ -177,16 +238,4 @@ class ReservaEntregaControllerTest {
         mockMvc.perform(patch("/reservas/50/cancelar").with(AS_RECEPTOR))
                 .andExpect(status().isNoContent());
     }
-
-    @Test
-    @DisplayName("GET /reservas/minhas/doador: deve retornar 200")
-    void listarMinhasDoador_deveRetornar200() throws Exception {
-        when(reservaService.listarMinhasDoador(1L))
-                .thenReturn(List.of(responseExemplo(SituacaoReservaEntrega.TRANSPORTE_VINCULADO, 20L)));
-
-        mockMvc.perform(get("/reservas/minhas/doador").with(AS_DOADOR))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(50));
-    }
 }
-

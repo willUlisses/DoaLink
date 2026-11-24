@@ -5,7 +5,6 @@ import com.doalink_api.dtos.request.ItemDoacaoRequest;
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
 import com.doalink_api.entities.Doador;
-import com.doalink_api.entities.DisponibilidadeTransporte;
 import com.doalink_api.entities.ItemDoacao;
 import com.doalink_api.entities.OfertaDoacao;
 import com.doalink_api.entities.Receptor;
@@ -18,6 +17,7 @@ import com.doalink_api.entities.enums.TipoUnidade;
 import com.doalink_api.entities.enums.TipoPessoa;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
+import com.doalink_api.repository.CodigoTransporteRepository;
 import com.doalink_api.repository.DoadorRepository;
 import com.doalink_api.repository.OfertaDoacaoRepository;
 import com.doalink_api.repository.ReservaEntregaRepository;
@@ -49,6 +49,12 @@ class OfertaDoacaoServiceTest {
     private TransportadorRepository transportadorRepository;
     @Mock
     private ReservaEntregaRepository reservaRepository;
+    @Mock
+    private CodigoTransporteRepository codigoTransporteRepository;
+    @Mock
+    private CodigoTransporteService codigoTransporteService;
+    @Mock
+    private ReservaEntregaService reservaEntregaService;
     @InjectMocks
     private OfertaDoacaoService service;
 
@@ -262,10 +268,8 @@ class OfertaDoacaoServiceTest {
 
         Transportador transportador = new Transportador();
         transportador.setId(2L);
-        DisponibilidadeTransporte disp = new DisponibilidadeTransporte();
-        disp.setTransportador(transportador);
         ReservaEntrega reserva = new ReservaEntrega();
-        reserva.setDisponibilidade(disp);
+        reserva.setTransportador(transportador);
 
         when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));
         when(reservaRepository.findFirstByOfertaIdAndSituacaoNot(10L, SituacaoReservaEntrega.CANCELADA))
@@ -313,10 +317,8 @@ class OfertaDoacaoServiceTest {
 
         Transportador transportador = new Transportador();
         transportador.setId(2L);
-        DisponibilidadeTransporte disp = new DisponibilidadeTransporte();
-        disp.setTransportador(transportador);
         ReservaEntrega reserva = new ReservaEntrega();
-        reserva.setDisponibilidade(disp);
+        reserva.setTransportador(transportador);
         reserva.setSituacao(SituacaoReservaEntrega.CONCLUIDA);
 
         when(ofertaRepository.findWithItensById(10L)).thenReturn(Optional.of(oferta));

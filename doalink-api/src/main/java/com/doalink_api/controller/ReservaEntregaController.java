@@ -1,7 +1,7 @@
 package com.doalink_api.controller;
 
+import com.doalink_api.dtos.request.ConfirmarCodigoTransporteRequest;
 import com.doalink_api.dtos.request.ReservaEntregaRequest;
-import com.doalink_api.dtos.request.VincularTransporteRequest;
 import com.doalink_api.dtos.response.ReservaEntregaResponse;
 import com.doalink_api.dtos.response.UsuarioAutenticado;
 import com.doalink_api.service.ReservaEntregaService;
@@ -51,17 +51,52 @@ public class ReservaEntregaController implements IReservaEntregaController {
     }
 
     @Override
+    public ResponseEntity<List<ReservaEntregaResponse>> listarHistoricoTransportador(
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(reservaService.listarHistoricoTransportador(usuario.id()));
+    }
+
+    @Override
     public ResponseEntity<List<ReservaEntregaResponse>> listarMinhasDoador(
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
         return ResponseEntity.ok(reservaService.listarMinhasDoador(usuario.id()));
     }
 
     @Override
-    public ResponseEntity<ReservaEntregaResponse> vincularTransporte(
+    public ResponseEntity<ReservaEntregaResponse> buscarPorId(
             @PathVariable Long id,
-            @RequestBody @Valid VincularTransporteRequest req,
             @AuthenticationPrincipal UsuarioAutenticado usuario) {
-        return ResponseEntity.ok(reservaService.vincularTransporte(usuario.id(), id, req));
+        return ResponseEntity.ok(reservaService.buscarPorId(usuario.id(), id));
+    }
+
+    @Override
+    public ResponseEntity<ReservaEntregaResponse> aceitarTransporte(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(reservaService.aceitarTransporte(usuario.id(), id));
+    }
+
+    @Override
+    public ResponseEntity<ReservaEntregaResponse> autorizarInicioTransporte(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(reservaService.autorizarInicioTransporte(usuario.id(), id));
+    }
+
+    @Override
+    public ResponseEntity<ReservaEntregaResponse> confirmarRetirada(
+            @PathVariable Long id,
+            @RequestBody @Valid ConfirmarCodigoTransporteRequest req,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(reservaService.confirmarRetirada(usuario.id(), id, req));
+    }
+
+    @Override
+    public ResponseEntity<ReservaEntregaResponse> confirmarEntrega(
+            @PathVariable Long id,
+            @RequestBody @Valid ConfirmarCodigoTransporteRequest req,
+            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return ResponseEntity.ok(reservaService.confirmarEntrega(usuario.id(), id, req));
     }
 
     @Override
@@ -80,4 +115,3 @@ public class ReservaEntregaController implements IReservaEntregaController {
         return ResponseEntity.noContent().build();
     }
 }
-

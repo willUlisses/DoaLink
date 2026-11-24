@@ -3,20 +3,18 @@ package com.doalink_api.service;
 import com.doalink_api.dtos.request.OfertaDoacaoRequest;
 import com.doalink_api.dtos.response.ContatoResponse;
 import com.doalink_api.dtos.response.OfertaDoacaoResponse;
-import com.doalink_api.entities.DisponibilidadeTransporte;
+import com.doalink_api.dtos.response.ReservaEntregaResponse;
+import com.doalink_api.entities.CodigoTransporte;
 import com.doalink_api.entities.OfertaDoacao;
 import com.doalink_api.entities.ReservaEntrega;
-import com.doalink_api.entities.Transportador;
 import com.doalink_api.entities.enums.SituacaoOferta;
 import com.doalink_api.entities.enums.SituacaoReservaEntrega;
+import com.doalink_api.entities.enums.TipoCodigoTransporte;
 import com.doalink_api.entities.enums.TipoItemDoacao;
 import com.doalink_api.exception.ForbiddenException;
 import com.doalink_api.exception.NotFoundException;
 import com.doalink_api.mapper.OfertaDoacaoMapper;
-import com.doalink_api.repository.DoadorRepository;
-import com.doalink_api.repository.OfertaDoacaoRepository;
-import com.doalink_api.repository.ReservaEntregaRepository;
-import com.doalink_api.repository.TransportadorRepository;
+import com.doalink_api.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +36,9 @@ public class OfertaDoacaoService {
     private final DoadorRepository doadorRepository;
     private final TransportadorRepository transportadorRepository;
     private final ReservaEntregaRepository reservaRepository;
+    private final CodigoTransporteRepository codigoTransporteRepository;
+    private final CodigoTransporteService codigoTransporteService;
+    private final ReservaEntregaService reservaEntregaService;
 
     // -------------------------------------------------------------------------
     // Criar oferta
@@ -61,19 +63,48 @@ public class OfertaDoacaoService {
         }
 
         List<Long> ofertaIds = ofertas.stream().map(OfertaDoacao::getId).toList();
-        Map<Long, ContatoResponse> receptorPorOferta = reservaRepository
+        Map<Long, ReservaEntrega> reservaPorOferta = reservaRepository
                 .findByOfertaIdInAndSituacaoNot(ofertaIds, SituacaoReservaEntrega.CANCELADA)
                 .stream()
-                .filter(r -> r.getOferta() != null && r.getReceptor() != null)
+                .filter(r -> r.getOferta() != null)
                 .collect(Collectors.toMap(
                         r -> r.getOferta().getId(),
-                        r -> ContatoResponse.from(r.getReceptor()),
+                        r -> r,
                         (primeiro, segundo) -> primeiro
                 ));
 
-        return ofertas.stream()
-                .map(oferta -> OfertaDoacaoResponse.from(oferta, true, receptorPorOferta.get(oferta.getId())))
+        List<Long> reservasAguardandoRetiradaIds = reservaPorOferta.values().stream()
+                .filter(r -> r.getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA)
+                .map(ReservaEntrega::getId)
                 .toList();
+
+        Map<Long, CodigoTransporte> codigosRetiradaPorReserva = reservasAguardandoRetiradaIds.isEmpty()
+                ? Map.of()
+                : codigoTransporteRepository
+                        .findByReservaIdInAndTipoAndInvalidadoFalseAndUtilizadoFalse(
+                                reservasAguardandoRetiradaIds, TipoCodigoTransporte.RETIRADA)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                c -> c.getReserva().getId(),
+                                c -> c,
+                                (primeiro, segundo) -> primeiro
+                        ));
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        return ofertas.stream().map(oferta -> {
+            ReservaEntrega reservaAtiva = reservaPorOferta.get(oferta.getId());
+            ContatoResponse receptorContato = (reservaAtiva != null && reservaAtiva.getReceptor() != null)
+                    ? ContatoResponse.from(reservaAtiva.getReceptor())
+                    : null;
+            String codigoRetirada = null;
+            if (reservaAtiva != null
+                    && reservaAtiva.getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA) {
+                CodigoTransporte cod = codigosRetiradaPorReserva.get(reservaAtiva.getId());
+                codigoRetirada = codigoTransporteService.reconstruirCodigoAtivo(cod, agora);
+            }
+            return OfertaDoacaoResponse.from(oferta, true, receptorContato, reservaAtiva, codigoRetirada);
+        }).toList();
     }
 
     // -------------------------------------------------------------------------
@@ -100,14 +131,11 @@ public class OfertaDoacaoService {
             throw new ForbiddenException("Doadores só podem visualizar suas próprias ofertas");
         }
 
-        // Quando nenhum filtro é informado busca todas as DISPONIVEL
         if (categoria == null && cidade == null && estado == null) {
             return ofertaRepository.findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
                     .map(o -> OfertaDoacaoResponse.from(o, false));
         }
 
-        // Com filtros aplica predicados em memória sobre a página e reconstrói PageImpl.
-        // Nota: total pode divergir do count real — queries JPA especializadas são a evolução futura.
         Page<OfertaDoacaoResponse> pagina = ofertaRepository
                 .findBySituacao(SituacaoOferta.DISPONIVEL, pageable)
                 .map(o -> OfertaDoacaoResponse.from(o, false));
@@ -137,10 +165,8 @@ public class OfertaDoacaoService {
                 .orElse(false);
 
         boolean isTransportadorVinculado = reservaAtiva
-                .map(ReservaEntrega::getDisponibilidade)
-                .map(DisponibilidadeTransporte::getTransportador)
-                .map(Transportador::getId)
-                .map(tid -> tid.equals(usuarioId))
+                .map(ReservaEntrega::getTransportador)
+                .map(t -> t.getId().equals(usuarioId))
                 .orElse(false);
 
         if (!isDono && doadorRepository.existsById(usuarioId)) {
@@ -167,7 +193,31 @@ public class OfertaDoacaoService {
                 ? reservaAtiva.map(ReservaEntrega::getReceptor).map(ContatoResponse::from).orElse(null)
                 : null;
 
-        return OfertaDoacaoResponse.from(oferta, podeVerDetalhesCompletos, receptorContato);
+        String codigoRetirada = null;
+        if (isDono && reservaAtiva.isPresent()
+                && reservaAtiva.get().getSituacao() == SituacaoReservaEntrega.AGUARDANDO_CONFIRMACAO_RETIRADA) {
+            CodigoTransporte cod = codigoTransporteRepository
+                    .findFirstByReservaIdAndTipoAndInvalidadoFalseAndUtilizadoFalseOrderByCriadoEmDesc(
+                            reservaAtiva.get().getId(), TipoCodigoTransporte.RETIRADA)
+                    .orElse(null);
+            codigoRetirada = codigoTransporteService.reconstruirCodigoAtivo(cod, LocalDateTime.now());
+        }
+
+        return OfertaDoacaoResponse.from(
+                oferta,
+                podeVerDetalhesCompletos,
+                receptorContato,
+                podeVerDetalhesCompletos ? reservaAtiva.orElse(null) : null,
+                codigoRetirada
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Autorizar início do transporte (atalho pela oferta)
+    // -------------------------------------------------------------------------
+    @Transactional
+    public ReservaEntregaResponse autorizarInicioTransporte(Long usuarioId, Long ofertaId) {
+        return reservaEntregaService.autorizarInicioTransportePorOferta(usuarioId, ofertaId);
     }
 
     // -------------------------------------------------------------------------
@@ -185,7 +235,7 @@ public class OfertaDoacaoService {
         if (oferta.getSituacao() != SituacaoOferta.DISPONIVEL) {
             throw new ForbiddenException(
                     "Só é possível cancelar ofertas com situação DISPONIVEL. Situação atual: "
-                    + oferta.getSituacao());
+                            + oferta.getSituacao());
         }
 
         oferta.setSituacao(SituacaoOferta.CANCELADA);

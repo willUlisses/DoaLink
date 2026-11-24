@@ -28,8 +28,8 @@ public class ReservaEntrega {
     private Receptor receptor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "disponibilidade_id")
-    private DisponibilidadeTransporte disponibilidade;
+    @JoinColumn(name = "transportador_id")
+    private Transportador transportador;
 
     @Column(name = "precisa_transporte", nullable = false)
     private boolean precisaTransporte;
@@ -37,6 +37,18 @@ public class ReservaEntrega {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private SituacaoReservaEntrega situacao;
+
+    @Column(name = "aceito_em")
+    private LocalDateTime aceitoEm;
+
+    @Column(name = "autorizado_em")
+    private LocalDateTime autorizadoEm;
+
+    @Column(name = "retirada_confirmada_em")
+    private LocalDateTime retiradaConfirmadaEm;
+
+    @Column(name = "entrega_confirmada_em")
+    private LocalDateTime entregaConfirmadaEm;
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
@@ -60,4 +72,3 @@ public class ReservaEntrega {
         this.atualizadoEm = LocalDateTime.now();
     }
 }
-
