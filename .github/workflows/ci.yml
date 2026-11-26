@@ -36,8 +36,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+          cache-dependency-path: doalink-api/pom.xml
 
       - name: Executar testes
+        working-directory: doalink-api
         env:
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
