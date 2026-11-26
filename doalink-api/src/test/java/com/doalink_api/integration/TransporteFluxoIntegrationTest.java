@@ -1,5 +1,6 @@
 package com.doalink_api.integration;
 
+import com.doalink_api.TestcontainersConfiguration;
 import com.doalink_api.dtos.request.ConfirmarCodigoTransporteRequest;
 import com.doalink_api.dtos.request.ReservaEntregaRequest;
 import com.doalink_api.dtos.response.UsuarioAutenticado;
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -34,6 +37,8 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @Transactional
 class TransporteFluxoIntegrationTest {
