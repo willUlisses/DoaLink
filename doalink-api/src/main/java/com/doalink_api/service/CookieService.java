@@ -17,6 +17,7 @@ public class CookieService {
     @Value("${app.jwt.access-minutes}") private long accessMinutes;
     @Value("${app.refresh.days}") private long refreshDays;
     @Value("${app.cookie.secure}") private boolean secure;
+    @Value("${app.cookie.same-site}") private String sameSite;
 
     public void adicionarHeaders(HttpServletResponse res, String access, String refresh) {
         res.addHeader(HttpHeaders.SET_COOKIE,
@@ -34,7 +35,7 @@ public class CookieService {
         return ResponseCookie.from(nome, valor)
                 .httpOnly(true)
                 .secure(secure)
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .path(path)
                 .maxAge(maxAge)
                 .build();

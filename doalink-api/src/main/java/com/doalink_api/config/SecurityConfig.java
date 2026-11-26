@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
@@ -104,9 +105,10 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.origins}") List<String> origins) {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(origins);
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-        cfg.setAllowedHeaders(List.of("Content-Type", "Authorization"));
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(true);
+        cfg.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;

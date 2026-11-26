@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type {
   FieldErrors,
   FieldValues,
@@ -7,6 +8,7 @@ import type {
   UseFormSetValue,
 } from 'react-hook-form'
 import { UFS_BRASIL } from '../../types/enums.ts'
+import { buscarEnderecoPorCep, type EnderecoViaCep } from '../../services/viacep.service.ts'
 import { mascararCep } from '../../utils/masks.ts'
 import { Input } from './Input.tsx'
 import { Select } from './Select.tsx'
@@ -48,6 +50,33 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
     `${prefix}.${name}` as Path<TFieldValues>
 
   const cepField = register(fieldPath('cep'))
+  const [cepStatus, setCepStatus] = useState<'idle' | 'loading' | 'notFound'>('idle')
+  const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => () => abortRef.current?.abort(), [])
+
+  const preencherPorCep = async (cep: string) => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setCepStatus('loading')
+    const endereco = await buscarEnderecoPorCep(cep, controller.signal)
+    if (controller.signal.aborted) return
+    if (!endereco) {
+      setCepStatus('notFound')
+      return
+    }
+    setCepStatus('idle')
+    const campos: (keyof EnderecoViaCep)[] = ['estado', 'cidade', 'bairro', 'logradouro']
+    for (const campo of campos) {
+      if (!endereco[campo]) continue
+      setValue(
+        fieldPath(campo),
+        endereco[campo] as PathValue<TFieldValues, Path<TFieldValues>>,
+        { shouldValidate: true, shouldDirty: true },
+      )
+    }
+  }
 
   return (
     <fieldset
@@ -78,7 +107,20 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
                 masked as PathValue<TFieldValues, Path<TFieldValues>>,
                 { shouldValidate: Boolean(errors?.cep) },
               )
+              if (masked.replace(/\D/g, '').length === 8) {
+                void preencherPorCep(masked)
+              } else {
+                abortRef.current?.abort()
+                setCepStatus('idle')
+              }
             }}
+            hint={
+              cepStatus === 'loading'
+                ? 'Buscando endereço...'
+                : cepStatus === 'notFound'
+                  ? 'CEP não encontrado. Preencha o endereço manualmente.'
+                  : undefined
+            }
           />
         </div>
 

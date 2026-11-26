@@ -1,0 +1,50 @@
+name: CI - Testes Automatizados
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    name: Testes unitários e de integração
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: doalink_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: doalink-api/pom.xml
+
+      - name: Executar testes
+        working-directory: doalink-api
+        env:
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          JWT_SECRET: test-jwt-secret-key-with-at-least-32-characters
+          MAIL_PORT: 1025
+          MAIL_USERNAME: test@doalink.com
+          MAIL_PASSWORD: testpassword
+        run: mvn test

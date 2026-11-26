@@ -1,5 +1,6 @@
 package com.doalink_api.integration;
 
+import com.doalink_api.TestcontainersConfiguration;
 import com.doalink_api.dtos.request.CadastroComumRequest;
 import com.doalink_api.dtos.request.LoginRequest;
 import com.doalink_api.dtos.request.ReenviarCodigoRequest;
@@ -20,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @Transactional
 class VerificacaoEmailIntegrationTest {
