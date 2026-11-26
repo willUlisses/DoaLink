@@ -72,7 +72,7 @@ describe('Fluxos críticos de formulário', () => {
     expect(await screen.findByRole('heading', { name: /tela verificar e-mail/i })).toBeInTheDocument()
   })
 
-  it('CadastroPage alterna campos por perfil, remove pontuação do documento e mapeia erro 409 ao campo sem apagar valores válidos', async () => {
+  it('CadastroPage divide em 2 etapas, permite voltar para trocar perfil, remove pontuação do documento e mapeia erro 409 ao campo sem apagar valores válidos', async () => {
     const user = userEvent.setup()
     const conflictError: NormalizedApiError = {
       status: 409,
@@ -95,15 +95,26 @@ describe('Fluxos críticos de formulário', () => {
       </ToastProvider>,
     )
 
-    // Alterna para Receptor e verifica que exige endereço e CNPJ
-    await user.click(screen.getByText(/receptor \(ong\)/i))
+    // Etapa 1: exibe seleção vertical de perfil
+    expect(screen.getByText(/etapa 1 de 2/i)).toBeInTheDocument()
+
+    // Seleciona Receptor e verifica que avança para Etapa 2 exigindo endereço e CNPJ
+    await user.click(screen.getByRole('radio', { name: /receptor \(ong\)/i }))
+    expect(screen.getByText(/etapa 2 de 2/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/nome da organização/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^cnpj/i)).toBeInTheDocument()
     expect(screen.getByText(/endereço da organização/i)).toBeInTheDocument()
 
-    // Volta para Doador e seleciona Pessoa Física (CPF)
-    await user.click(screen.getByText(/^doador$/i))
+    // Volta para a Etapa 1 pelo botão Voltar e seleciona Doador
+    await user.click(screen.getByRole('button', { name: /voltar/i }))
+    expect(screen.getByText(/etapa 1 de 2/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('radio', { name: /^doador/i }))
+
+    // Alterna para Pessoa Jurídica (CNPJ) e volta para Pessoa Física (CPF)
+    await user.click(screen.getByText(/pessoa jurídica \(cnpj\)/i))
+    expect(screen.getByLabelText(/^cnpj/i)).toBeInTheDocument()
     await user.click(screen.getByText(/pessoa física \(cpf\)/i))
+
     await user.type(screen.getByLabelText(/nome completo/i), 'Carlos Souza')
     await user.type(screen.getByLabelText(/^cpf/i), '52998224725')
     await user.type(screen.getByLabelText(/e-mail/i), 'carlos@exemplo.com')
@@ -125,6 +136,28 @@ describe('Fluxos críticos de formulário', () => {
     expect(errorOccurrences.length).toBeGreaterThanOrEqual(2)
     expect(screen.getByLabelText(/e-mail/i)).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByLabelText(/nome completo/i)).toHaveValue('Carlos Souza')
+  })
+
+  it('CadastroPage abre diretamente na etapa 2 quando recebe perfil na URL e permite voltar', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <ToastProvider>
+        <AuthProvider skipInitialRefresh initialUser={null}>
+          <MemoryRouter initialEntries={['/cadastro?perfil=TRANSPORTADOR']}>
+            <Routes>
+              <Route path="/cadastro" element={<CadastroPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </ToastProvider>,
+    )
+
+    expect(screen.getByText(/etapa 2 de 2/i)).toBeInTheDocument()
+    expect(screen.getByText(/transportador/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /voltar/i }))
+    expect(screen.getByText(/etapa 1 de 2/i)).toBeInTheDocument()
   })
 
   it('NovaOfertaPage permite itens dinâmicos, mapeia erro 400 ao campo e bloqueia duplo envio', async () => {
