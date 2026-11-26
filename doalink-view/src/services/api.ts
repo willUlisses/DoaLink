@@ -37,7 +37,7 @@ export function resetRefreshStateForTests(): void {
 }
 
 function getBaseUrl(): string {
-  const configured = import.meta.env.API_BASE_URL
+  const configured = import.meta.env.VITE_API_BASE_URL
   if (typeof configured === 'string' && configured.trim() !== '') {
     return configured.trim().replace(/\/+$/, '')
   }
