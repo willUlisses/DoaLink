@@ -1,4 +1,4 @@
-import { Building2, HeartHandshake, Truck } from 'lucide-react'
+import { Building2, ChevronRight, HeartHandshake, Truck } from 'lucide-react'
 import { useId } from 'react'
 import { TIPO_USUARIO, type TipoUsuario } from '../../types/enums.ts'
 import { DESCRICOES_TIPO_USUARIO, LABELS_TIPO_USUARIO } from '../../utils/labels.ts'
@@ -7,7 +7,6 @@ interface ProfileSelectorProps {
   value: TipoUsuario
   onChange: (value: TipoUsuario) => void
   error?: string
-  compact?: boolean
 }
 
 const PROFILE_OPTIONS: Array<{
@@ -36,64 +35,50 @@ const PROFILE_OPTIONS: Array<{
   },
 ]
 
-export function ProfileSelector({
-  value,
-  onChange,
-  error,
-  compact = false,
-}: ProfileSelectorProps) {
+export function ProfileSelector({ value, onChange, error }: ProfileSelectorProps) {
   const groupId = useId()
 
   return (
-    <fieldset className={`flex flex-col ${compact ? 'gap-1.5' : 'gap-2'}`}>
-      <legend id={groupId} className="text-sm font-medium text-ink mb-0.5">
+    <fieldset className="flex flex-col gap-2">
+      <legend id={groupId} className="mb-0.5 text-sm font-medium text-ink">
         Qual é o seu perfil no DoaLink?
         <span className="ml-1 text-danger" aria-hidden="true">
           *
         </span>
       </legend>
-      <div
-        role="radiogroup"
-        aria-labelledby={groupId}
-        className="grid grid-cols-1 gap-2.5 sm:grid-cols-3"
-      >
+      <div role="radiogroup" aria-labelledby={groupId} className="grid grid-cols-1 gap-3">
         {PROFILE_OPTIONS.map((option) => {
           const isSelected = value === option.value
           const Icon = option.Icon
           return (
-            <label
+            <button
               key={option.value}
-              className={`relative flex flex-col rounded-card border cursor-pointer transition-colors duration-150 ${
-                compact ? 'gap-1 p-3' : 'gap-2 p-4'
-              } ${
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              onClick={() => onChange(option.value)}
+              className={`flex w-full items-center gap-3.5 rounded-card border p-4 text-left cursor-pointer transition-colors duration-150 ${
                 isSelected
                   ? option.selectedClass
                   : 'border-border bg-surface hover:border-border-strong'
               }`}
             >
-              <input
-                type="radio"
-                name="tipoUsuarioSelector"
-                value={option.value}
-                checked={isSelected}
-                onChange={() => onChange(option.value)}
-                className="sr-only"
-              />
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-flex ${compact ? 'h-7 w-7' : 'h-8 w-8'} items-center justify-center rounded-button ${option.iconBgClass}`}
-                  aria-hidden="true"
-                >
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="text-sm font-semibold text-ink">
+              <span
+                className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-button ${option.iconBgClass}`}
+                aria-hidden="true"
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-ink">
                   {LABELS_TIPO_USUARIO[option.value]}
                 </span>
-              </div>
-              <p className={`text-xs text-ink-secondary ${compact ? 'leading-snug' : 'leading-relaxed'}`}>
-                {DESCRICOES_TIPO_USUARIO[option.value]}
-              </p>
-            </label>
+                <span className="mt-0.5 block text-xs leading-snug text-ink-secondary">
+                  {DESCRICOES_TIPO_USUARIO[option.value]}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-tertiary" aria-hidden="true" />
+            </button>
           )
         })}
       </div>
@@ -105,4 +90,3 @@ export function ProfileSelector({
     </fieldset>
   )
 }
-

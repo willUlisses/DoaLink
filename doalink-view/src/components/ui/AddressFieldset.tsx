@@ -32,6 +32,7 @@ interface AddressFieldsetProps<TFieldValues extends FieldValues> {
   errors?: FieldErrors<AddressFieldValue>
   required?: boolean
   compact?: boolean
+  className?: string
 }
 
 const UF_OPTIONS = UFS_BRASIL.map((uf) => ({ value: uf, label: uf }))
@@ -45,6 +46,7 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
   errors,
   required = true,
   compact = false,
+  className = '',
 }: AddressFieldsetProps<TFieldValues>) {
   const fieldPath = (name: keyof AddressFieldValue): Path<TFieldValues> =>
     `${prefix}.${name}` as Path<TFieldValues>
@@ -80,16 +82,16 @@ export function AddressFieldset<TFieldValues extends FieldValues>({
 
   return (
     <fieldset
-      className={`rounded-card border border-border bg-surface-subtle/50 ${
+      className={`flex flex-col rounded-card border border-border bg-surface-subtle/50 ${
         compact ? 'p-3.5' : 'p-4 sm:p-5'
-      }`}
+      } ${className}`}
     >
       <legend className="px-1.5 text-sm font-semibold text-ink">{legend}</legend>
       {description ? (
         <p className={`${compact ? 'mb-2.5' : 'mb-4'} text-xs text-ink-secondary`}>{description}</p>
       ) : null}
 
-      <div className={`grid grid-cols-1 sm:grid-cols-6 ${compact ? 'gap-2.5' : 'gap-4'}`}>
+      <div className={`grid flex-1 grid-cols-1 content-between sm:grid-cols-6 ${compact ? 'gap-2.5' : 'gap-4'}`}>
         <div className="sm:col-span-2">
           <Input
             label="CEP"
