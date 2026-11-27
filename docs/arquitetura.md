@@ -1,8 +1,13 @@
 # Arquitetura
 
-O DoaLink é uma aplicação em duas partes: uma API REST em **Spring Boot** (Java) e uma SPA em **React + TypeScript + Tailwind**. No back-end, as regras de negócio ficam concentradas na camada de **service**. Os motivos das decisões estão nos ADRs em `docs/adr/`.
+O DoaLink adota uma arquitetura **MVC (Model-View-Controller)** distribuída em duas aplicações independentes: uma API REST em **Spring Boot** (`doalink-api`, responsável pelas camadas **Model** e **Controller**) e uma SPA em **React + TypeScript + Tailwind** (`doalink-view`, responsável pela camada **View**). Os motivos das decisões estruturais estão registrados nos ADRs em `docs/adr/`.
 
 ## Visão geral
+
+No padrão **MVC** distribuído do DoaLink:
+- **Model (`doalink-api`):** composto por `entities`, `repository`, `service`, `dtos` e `mapper`, concentrando as regras de negócio na camada de **service** e a persistência no banco de dados.
+- **Controller (`doalink-api`):** pacote `controller`, responsável por receber requisições HTTP, acionar validações de DTOs e delegar para os services.
+- **View (`doalink-view`):** SPA em React + TypeScript + Tailwind, responsável pela interface do usuário, roteamento, validação de UX e comunicação com a API via cookies `HttpOnly`.
 
 ```mermaid
 flowchart LR
@@ -23,17 +28,28 @@ flowchart LR
 
 ```
 com.doalink_api
+├── config          # SecurityConfig, RequestFilter, UsuarioDetails e OpenApiConfig
 ├── controller      # endpoints REST
-├── service         # regras de negócio e orquestração
-├── repository      # interfaces Spring Data JPA
-├── entities        # entidades JPA (e enums em entities.enums)
 ├── dtos
 │   ├── request     # entrada, com Bean Validation
 │   └── response    # saída
-├── mapper          # conversões DTO <-> entidade sem regra de negócio
-├── security        # JWT, filtro, UserDetails, cookies, SecurityConfig
+├── entities        # entidades JPA (e enums em entities.enums)
 ├── exception       # exceções de domínio e ApiExceptionHandler
-└── config          # beans e configurações gerais
+├── mapper          # conversões DTO <-> entidade sem regra de negócio
+├── repository      # interfaces Spring Data JPA
+└── service         # regras de negócio e orquestração
+```
+
+Estrutura de recursos (`src/main/resources`):
+
+```
+src/main/resources
+├── db
+│   └── migration   # migrations versionadas do Flyway (V1..V11+)
+├── static          # recursos estáticos
+├── templates       # templates (ex.: e-mail)
+├── application.properties
+└── application-prod.properties
 ```
 
 ### Controller (`controller/`)
@@ -80,7 +96,7 @@ com.doalink_api
 - O `ApiExceptionHandler` (`@RestControllerAdvice`) converte exceções em respostas HTTP padronizadas: 400 (validação), 401, 409 (conflito, inclusive `DataIntegrityViolationException`).
 - Respostas de 401/403 geradas pelos filtros de segurança vêm da `SecurityConfig` (`authenticationEntryPoint` e `accessDeniedHandler`), pois o `@RestControllerAdvice` não as captura.
 
-### Segurança (`security/`)
+### Segurança (`config/`)
 
 - **Stateless:** `SessionCreationPolicy.STATELESS`; o servidor não usa `HttpSession`.
 - **Access token:** JWT curto (15 min), assinado com HMAC256 (biblioteca `com.auth0:java-jwt`), em cookie HttpOnly. Contém `id` (subject), e-mail e role. O `JwtAuthFilter` o valida só pela assinatura, sem consultar o banco.
@@ -118,15 +134,37 @@ com.doalink_api
 
 ```
 src
-├── pages           # uma página por rota
-├── components      # componentes reutilizáveis (sem chamadas de API)
-├── features        # agrupamento por funcionalidade (auth, doacoes, ...)
-├── services        # clientes HTTP (uma função por endpoint)
-├── hooks           # hooks reutilizáveis (ex.: useAuth)
-├── contexts        # estado global necessário (ex.: usuário logado)
-├── routes          # definição de rotas e rotas protegidas por perfil
-├── types           # tipos e interfaces (espelham os DTOs da API)
-└── utils           # funções puras (máscaras, formatadores)
+├── components          # componentes reutilizáveis (sem chamadas de API)
+│   ├── feedback        # estados de carregamento, erro e feedback visual
+│   ├── layout          # estrutura de layout da aplicação
+│   └── ui              # componentes base de interface
+├── contexts            # estado global necessário (ex.: usuário logado)
+├── features            # agrupamento por funcionalidade
+│   ├── campanhas
+│   ├── necessidades
+│   ├── ofertas
+│   └── reservas
+├── hooks               # hooks reutilizáveis (ex.: useAuth)
+├── pages               # uma página por rota
+│   ├── app
+│   │   ├── campanhas
+│   │   ├── necessidades
+│   │   ├── ofertas
+│   │   ├── perfil
+│   │   ├── reservas
+│   │   └── transporte
+│   ├── auth
+│   ├── errors
+│   └── __tests__
+├── routes              # definição de rotas e rotas protegidas por perfil
+│   └── __tests__
+├── schemas             # esquemas de validação (auth, campanha, endereco, necessidade, oferta, reserva, usuario)
+│   └── __tests__
+├── services            # clientes HTTP (uma função por endpoint)
+│   └── __tests__
+├── test                # setup de testes (setup.ts)
+├── types               # tipos e interfaces (espelham os DTOs da API)
+└── utils               # funções puras (máscaras, formatadores)
 ```
 
 ### Responsabilidades
@@ -134,6 +172,8 @@ src
 - **Pages** compõem componentes e chamam hooks/serviços. **Components** apenas apresentam e recebem dados por props.
 - **Services** concentram o acesso à API. Todo `fetch` usa `credentials: 'include'`, porque a sessão vive em cookies HttpOnly. O front **nunca** lê nem guarda tokens (sem `localStorage`).
 - **Tipos** em `types/` espelham os DTOs de request e response do back-end.
+- **Schemas (`schemas/`):** concentram os esquemas de validação de formulários com Zod (`auth`, `campanha`, `endereco`, `necessidade`, `oferta`, `reserva`, `usuario`), garantindo feedback imediato ao usuário antes do envio à API.
+- **Testes (`test/`):** reúne a configuração do ambiente de testes automatizados com Vitest e Testing Library (`setup.ts`).
 - **Validação no formulário** serve à experiência do usuário. A validação que vale é a do back-end, e os erros 400/409 devolvidos pela API são exibidos nos campos.
 - **Máscaras** (CPF, CNPJ, CEP, telefone) são só de apresentação: o front envia o valor como está ou sem pontuação, e o back-end normaliza.
 - **Seleção PF/PJ:** o formulário mostra apenas o campo escolhido (CPF ou CNPJ) e envia somente ele. No cadastro de Receptor só existe CNPJ.
